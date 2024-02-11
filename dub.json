@@ -1,0 +1,11 @@
+{
+	"authors": [
+		"HeronErin"
+	],
+	"dependencies": {
+		"freck-streams": "~>1.2.0"
+	},
+	"description": "A minimal D application.",
+	"license": "proprietary",
+	"name": "DustyFS"
+}
