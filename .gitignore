@@ -16,3 +16,4 @@ DustyFS-test-*
 *.lst
 testing
 stream.txt
+*.dust
