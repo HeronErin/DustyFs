@@ -201,7 +201,7 @@ class NodeStream : StreamInterface{
         return offsetsToReturn;
     }
 
-    void write(in ubyte b) => parent.allocator.file.write(b);
+    void write(in ubyte b) => this.write([b]);
     void write(in ubyte[] b){
         long writeExtent = userlandPos + b.length;
 
@@ -272,9 +272,11 @@ class DustyFs{
         if (doInit){
             NodeStream node = new NodeStream(this, 5);
             node.seek(0);
-            //node.write(cast(ubyte[]) "Weeeeeeeeeeeeeeeeeeeeeeee");
-            //node.write(cast(ubyte[]) "123456789");
-            //node.seek(0);
+            node.write(cast(ubyte[]) "1234");
+            node.seek(2, Seek.cur);
+            node.write('%');
+            node.write(cast(ubyte[]) "123456789");
+            node.seek(0);
             (cast(string)node.read(50)).writeln();
 
         }

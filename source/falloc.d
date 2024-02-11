@@ -11,6 +11,7 @@ enum SIZE_OF_HEADER_STRING = HEADER_STRING.length;
 enum SIZE_OF_SECTION_HEADER = uint.sizeof*3;
 enum SIZE_OF_CHUNCK_HEADER = uint.sizeof + bool.sizeof;
 enum DEFAULT_SECTION_SIZE = 1024*1024*10; // 10 mb
+enum MAX_DEFAULT_ALLOC_SIZE = DEFAULT_SECTION_SIZE - SIZE_OF_SECTION_HEADER - SIZE_OF_CHUNCK_HEADER;
 
 enum FIRST_CHUNCK = SIZE_OF_HEADER_STRING+SIZE_OF_SECTION_HEADER;
 
@@ -156,7 +157,7 @@ class FileAlloc{
     }
     uint alloc(uint size, bool recursion=false){
 
-        assert(size <= DEFAULT_SECTION_SIZE, "Too large allocation");
+        assert(size <= MAX_DEFAULT_ALLOC_SIZE, "Too large allocation");
 
         foreach(ref section ; sections){
             assert(section.size >= section.spaceUsed, "Section has too much data allocated");
