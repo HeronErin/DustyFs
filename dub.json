@@ -6,6 +6,7 @@
 		"freck-streams": "~>1.2.0"
 	},
 	"description": "A minimal D application.",
-	"license": "proprietary",
-	"name": "DustyFS"
+	"license": "GNU Affero General Public License v3.0",
+	"name": "dusty_fs",
+	"targetName": "DustyFS"
 }

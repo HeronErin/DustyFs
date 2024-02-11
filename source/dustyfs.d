@@ -272,9 +272,9 @@ class DustyFs{
         if (doInit){
             NodeStream node = new NodeStream(this, 5);
             node.seek(0);
-            node.write(cast(ubyte[]) "Weeeeeeeeeeeeeeeeeeeeeeee");
-            node.write(cast(ubyte[]) "123456789");
-            node.seek(0);
+            //node.write(cast(ubyte[]) "Weeeeeeeeeeeeeeeeeeeeeeee");
+            //node.write(cast(ubyte[]) "123456789");
+            //node.seek(0);
             (cast(string)node.read(50)).writeln();
 
         }
