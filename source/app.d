@@ -3,14 +3,17 @@ import falloc;
 import freck.streams.filestream;
 import utils;
 import dustyfs;
-void main()
-{
-    "Starting...".writeln();
-	auto fs = new dustyfs.DustyFs("testing", true);
-    "Made fs".writeln();
-	//auto x = new uint[100];
-	//x.writeln();
-	//"Exiting".writeln();
+
+
+
+void main(){
+
+    //auto allocator = new falloc.FileAlloc(new FileStream("reopen.dust", "w+b"), true);
+    //allocator.alloc(100).writeln();
+
+
+
+
 
 
 

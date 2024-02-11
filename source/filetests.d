@@ -5,7 +5,7 @@ import freck.streams.filestream;
 
 // Test basic falloc usage
 unittest{
-    auto allocator = new falloc.FileAlloc(new FileStream("testing.dust", "w+b"), true);
+    auto allocator = new falloc.FileAlloc(new FileStream("basic.dust", "w+b"), true);
 
     assert(25 == allocator.alloc(0));
     assert(30 == allocator.alloc(0));
@@ -29,6 +29,22 @@ unittest{
     assert(150 == allocator.alloc(5*1024*1024));
     assert(10485797 == allocator.alloc(5*1024*1024));
 
-    "Finished basic usage test".writeln();
-    allocator.printAllocTree();
+    //"Finished basic usage test".writeln();
+    //allocator.printAllocTree();
+}
+
+
+// Reopening falloc file
+unittest{
+
+    auto allocator = new falloc.FileAlloc(new FileStream("reopen.dust", "wb+"), true);
+    assert(25 == allocator.alloc(100));
+    allocator.destroy();
+
+
+    allocator = new falloc.FileAlloc(new FileStream("reopen.dust", "rb+"), false);
+    assert(130 == allocator.alloc(100));
+
+
+    //allocator.alloc(100).writeln();
 }

@@ -49,7 +49,7 @@ class FileAlloc{
     }
     T readInt(T)(){
         ubyte[] readData = file.read(T.sizeof);
-        import std.conv;
+        //import std.conv;
         assert( readData.length == T.sizeof, "readInt() failed due it insufficient file size!");
 
         T val = ( cast(T[]) readData)[0];
@@ -99,7 +99,8 @@ class FileAlloc{
     }
 
 
-
+    // WARNING: This will effectivly take ownership of the file object.
+    // Only use the file object through this class! Otherwise undefined behaviour!
     this(StreamInterface file, bool doInit=false){
         this.file=file;
         file.seek(0);
@@ -111,25 +112,28 @@ class FileAlloc{
             "Header found".writeln();
             uint pos = SIZE_OF_HEADER_STRING;
             while(1){
+                file.seek(pos);
                 Tuple!(uint, uint, uint) section = readSectionHeader();
+
                 Section current;
 
                 current.parent=this;
                 current.offset = pos;
-                if (!current.size) break;
                 current.size               = section[0];
                 current.spaceUsed          = section[1];
                 current.largestFailedAlloc = section[2];
+                if (!current.size) break;
                 sections ~= current;
 
                 pos += SIZE_OF_SECTION_HEADER + current.size;
 
-                file.seek(pos);
-                //if (pos+SIZE_OF_SECTION_HEADER > file.length()) return;
+
+                if (pos > file.length()) return;
 
             }
         }else if (doInit){
             "Creating header".writeln();
+            file.seek(0);
             file.write(cast(ubyte[]) HEADER_STRING);
 
             Section firstSection;
@@ -154,6 +158,10 @@ class FileAlloc{
         foreach (ref section ; this.sections){
             section.write();
         }
+
+        // This will bring down the file object with the allocator.
+        file.destroy();
+        file = null; // Better a null pointer exception than use after free. Right?
     }
     uint alloc(uint size, bool recursion=false){
 
@@ -219,7 +227,7 @@ class FileAlloc{
 
 
         Section section;
-        section.parent=this;
+        section.parent = this;
         section.offset = cast(uint)nextSection;
 
         section.largestFailedAlloc = uint.max;
