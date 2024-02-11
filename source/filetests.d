@@ -26,4 +26,9 @@ unittest{
     assert(0, "falloc did not throw an assertion error when allocing too much!");
     GOOD:
 
+    assert(150 == allocator.alloc(5*1024*1024));
+    assert(10485797 == allocator.alloc(5*1024*1024));
+
+    "Finished basic usage test".writeln();
+    allocator.printAllocTree();
 }
