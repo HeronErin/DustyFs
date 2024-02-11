@@ -3,6 +3,7 @@ import freck.streams.streaminterface;
 import std.stdio;
 import std.string : StringException;
 import std.typecons;
+import std.logger;
 
 import utils;
 
@@ -109,7 +110,7 @@ class FileAlloc{
 
         const auto from_file = file.read(SIZE_OF_HEADER_STRING);
         if (from_file == HEADER_STRING){
-            "Header found".writeln();
+            log("Loading an allocator from a file");
             uint pos = SIZE_OF_HEADER_STRING;
             while(1){
                 file.seek(pos);
@@ -122,7 +123,7 @@ class FileAlloc{
                 current.size               = section[0];
                 current.spaceUsed          = section[1];
                 current.largestFailedAlloc = section[2];
-                if (!current.size) break;
+                if (!current.size) return;
                 sections ~= current;
 
                 pos += SIZE_OF_SECTION_HEADER + current.size;
@@ -132,7 +133,7 @@ class FileAlloc{
 
             }
         }else if (doInit){
-            "Creating header".writeln();
+            log("Initilizing an allocator to a file");
             file.seek(0);
             file.write(cast(ubyte[]) HEADER_STRING);
 
@@ -158,7 +159,6 @@ class FileAlloc{
         foreach (ref section ; this.sections){
             section.write();
         }
-
         // This will bring down the file object with the allocator.
         file.destroy();
         file = null; // Better a null pointer exception than use after free. Right?

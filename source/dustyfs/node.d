@@ -1,4 +1,8 @@
-module dustyfs;
+module dustyfs.node;
+ 
+ 
+ 
+
 import falloc;
 import freck.streams.filestream;
 import freck.streams.streaminterface;
@@ -6,17 +10,15 @@ import freck.streams.streaminterface;
 import std.typecons;
 import utils;
 import std.stdio;
-// "Files" / Nodes are broken up into multiple subNodes.
+import std.logger;
 
-// The initial node is as following in the file:
-// uint nextprt
-// ushort size of sub node
-// uint size of node (rounded)
-// uint true size of node
 
-// Sub nodes are as follows:
-// uint nextprt
-// ushort size of sub node
+
+import dustyfs.fs;
+
+
+
+
 
 
 enum SIZE_OF_INITIAL_NODE_HEADER = uint.sizeof + ushort.sizeof + uint.sizeof + uint.sizeof + uint.sizeof;
@@ -263,23 +265,4 @@ class NodeStream : StreamInterface{
     string getMetadata(string key) => parent.allocator.file.getMetadata(key);
 }
 
-
-
-class DustyFs{
-    falloc.FileAlloc allocator;
-    this(string path, bool doInit=false){
-        this.allocator = new falloc.FileAlloc(new FileStream(path, doInit ? "w+b" : "r+b"), doInit);
-        if (doInit){
-            NodeStream node = new NodeStream(this, 5);
-            node.seek(0);
-            node.write(cast(ubyte[]) "1234");
-            node.seek(2, Seek.cur);
-            node.write('%');
-            node.write(cast(ubyte[]) "123456789");
-            node.seek(0);
-            (cast(string)node.read(50)).writeln();
-
-        }
-    }
-}
 
