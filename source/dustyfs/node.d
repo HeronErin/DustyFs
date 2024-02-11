@@ -265,4 +265,3 @@ class NodeStream : StreamInterface{
     string getMetadata(string key) => parent.allocator.file.getMetadata(key);
 }
 
-
