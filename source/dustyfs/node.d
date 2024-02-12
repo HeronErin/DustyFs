@@ -26,7 +26,6 @@ enum SIZE_OF_SUB_NODE_HEADER = uint.sizeof + ushort.sizeof;
 
 enum DEFAULT_NODE_CREATION_SIZE = 128;
 
-
 struct SubNode{
     uint offset;
 
@@ -61,31 +60,31 @@ class NodeStream : StreamInterface{
     SubNode[] nodes;
 
     // Make new node
-    this(DustyFs parent, uint suggestedSize=DEFAULT_NODE_CREATION_SIZE){
-        suggestedSize+=SIZE_OF_INITIAL_NODE_HEADER;
+    this(DustyFs parent, uint reserveSize=DEFAULT_NODE_CREATION_SIZE){
+        reserveSize+=SIZE_OF_INITIAL_NODE_HEADER;
 
-        bool weMustSplitUp = ushort.max <= suggestedSize;
-        ushort initialNodeSize =  weMustSplitUp ? ushort.max : cast(ushort)suggestedSize ;
+        bool weMustSplitUp = ushort.max <= reserveSize;
+        ushort initialNodeSize =  weMustSplitUp ? ushort.max : cast(ushort)reserveSize ;
 
-        const int start = parent.allocator.alloc(suggestedSize);
+        const int start = parent.allocator.alloc(reserveSize);
 
         parent.allocator.file.seek(start);
 
         parent.allocator.writeInt!uint(0);                  // Next pointer
         parent.allocator.writeInt!ushort(initialNodeSize);  // Sub-node size
-        parent.allocator.writeInt!uint(suggestedSize);      // On-disk, reserved, node size
+        parent.allocator.writeInt!uint(reserveSize);      // On-disk, reserved, node size
         parent.allocator.writeInt!uint(0);                  // Userland file size
 
         this(parent, start, start);
         if (!weMustSplitUp) return;
 
-        suggestedSize -= ushort.max;
+        reserveSize -= ushort.max;
 
 
-        while (suggestedSize){
+        while (reserveSize){
 
 
-            ushort nodeSize = cast(ushort) utils.min(cast(uint)ushort.max, suggestedSize);
+            ushort nodeSize = cast(ushort) utils.min(cast(uint)ushort.max, reserveSize);
             auto offsetOfSubNode = allocator.alloc(nodeSize+SIZE_OF_SUB_NODE_HEADER);
 
             assert(offsetOfSubNode != 0);
@@ -94,8 +93,8 @@ class NodeStream : StreamInterface{
             nodes[$-1].nextPrt = node.offset;
             this.nodes ~= node;
 
-            assert(suggestedSize>=nodeSize);
-            suggestedSize-= nodeSize;
+            assert(reserveSize>=nodeSize);
+            reserveSize-= nodeSize;
 
         }
         foreach(ref SubNode node ; nodes)
@@ -263,5 +262,20 @@ class NodeStream : StreamInterface{
     }
 
     string getMetadata(string key) => parent.allocator.file.getMetadata(key);
+
+    void writeInt(T)(T val){
+        val = utils.toEndian!T(val, utils.Endianness.LittleEndian);
+        ubyte[] next = (cast(ubyte*)&val)[0..T.sizeof];
+        this.write(next);
+    }
+    T readInt(T)(){
+        ubyte[] readData = this.read(T.sizeof);
+        //import std.conv;
+        assert( readData.length == T.sizeof, "readInt() failed due it insufficient file size!");
+
+        T val = ( cast(T[]) readData)[0];
+        val = utils.fromEndian!T(val, utils.Endianness.LittleEndian);
+        return val;
+    }
 }
 
