@@ -1,6 +1,12 @@
 # Dusty FS
-![Tests workflow](https://github.com/HeronErin/DustyFs/actions/workflows/tests.yml/badge.svg)
-![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+
+
+<p align="center">
+    <a href="https://github.com/HeronErin/DustyFs/actions/workflows/tests.yml"><img src="https://github.com/HeronErin/DustyFs/actions/workflows/tests.yml/badge.svg" alt="Build Status"/></a>
+    <img src="https://img.shields.io/github/repo-size/HeronErin/DustyFs.svg" alt="GitHub repo size"/>
+    <img src="https://img.shields.io/github/license/HeronErin/DustyFs.svg" alt="GitHub repo license"/>
+</p>
+
 
 This is still an **early** WIP.
 
