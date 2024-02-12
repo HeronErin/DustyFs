@@ -12,8 +12,8 @@
     <a href="https://github.com/HeronErin/DustyFs"><img src="https://web.archive.org/web/20231219000932if_/https://forthebadge.com/images/badges/60-percent-of-the-time-works-every-time.svg" height="30"/></a>    
     <a href="https://github.com/HeronErin/DustyFs"><img src="https://web.archive.org/web/20231221115844if_/https://forthebadge.com/images/featured/featured-contains-cat-gifs.svg" alt="Cat gifs" height="30"/></a>
     <br/>
-    <a href="https://github.com/HeronErin/DustyFs"><img src="https://web.archive.org/web/20240106021450if_/https://forthebadge.com/images/badges/built-with-love.svg" alt="Made with love"/></a>
-    <a href="https://github.com/HeronErin/DustyFs"><img src="https://web.archive.org/web/20240105130909if_/https://forthebadge.com/images/badges/uses-brains.svg" alt="Uses brains"/></a>
+    <a href="https://github.com/HeronErin/DustyFs"><img src="https://web.archive.org/web/20240106021450if_/https://forthebadge.com/images/badges/built-with-love.svg" alt="Made with love" height="30"/></a>
+    <a href="https://github.com/HeronErin/DustyFs"><img src="https://web.archive.org/web/20240105130909if_/https://forthebadge.com/images/badges/uses-brains.svg" alt="Uses brains" height="30"/></a>
 </p>
 
 
