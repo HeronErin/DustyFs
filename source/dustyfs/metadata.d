@@ -40,28 +40,22 @@ Tuple!(NodeType, string, uint, uint) readMetaMetadata(StreamInterface file){
 
 
     ubyte intReadCount = 0;
-    auto sizeBuff = new ubyte[0];
-    auto ptrBuff = new ubyte[0];
-    while (1){
-        ubyte b = file.read();
-        if (!intReadCount) sizeBuff~=b;
-        else ptrBuff~=b;
-        if (0 == (b & 128) && intReadCount++ == 1) break;
-    }
+
+    uint[] size_ptr = fromVarIntStream!uint(file, 2);
 
     ubyte[] name = file.read(nodeType_len[1]);
 
     assert(name.length == nodeType_len[1], "Can't read name in MetaMetadata");
-    return tuple(cast(NodeType)nodeType_len[0], cast(string)name, fromVarInt!uint(sizeBuff), fromVarInt!uint(ptrBuff));
+    return tuple(cast(NodeType)nodeType_len[0], cast(string)name, size_ptr[0], size_ptr[1]);
 
 }
 unittest{
-    import freck.streams.memorystream;
+    //import freck.streams.memorystream;
 
-    auto stream = MemoryStream.fromBytes([]);
-    writeMetaMetadata(stream, NodeType.Directory, "Hello world!", 50000, 420000);
-    stream.seek(0);
-    readMetaMetadata(stream).writeln();
+    //auto stream = MemoryStream.fromBytes([]);
+    //writeMetaMetadata(stream, NodeType.Directory, "Hello world!", 50000, 420000);
+    //stream.seek(0);
+    //readMetaMetadata(stream).writeln();
     //assert(readMetaMetadata(stream) == Tuple!(NodeType, string, uint, uint)(NodeType.Directory, "Hello world!", 69, 420));
 
 }

@@ -241,7 +241,13 @@ class NodeStream : StreamInterface{
 
     }
 
-    ubyte read() => this.read(1)[0];
+    ubyte read(){
+        Tuple!(uint, uint)[] offsetA = this.makeLengthWiseOffsets(1);
+        debug assert(offsetA.length == 1);
+        allocator.file.seek(offsetA[0][0]);
+        return allocator.file.read();
+    }
+
     ubyte[] read(in ulong n){
         ubyte[] ret = new ubyte[n];
 

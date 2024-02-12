@@ -76,11 +76,11 @@ T fromVarInt(T)(in ubyte[] input){
     T ret = 0;
     ushort offset = 0;
     foreach(ubyte b ; input){
-        debug assert(offset < T.sizeof*8, "That number is too large. Curruption suspected");f
+        debug assert(offset < T.sizeof*8, "That number is too large. Curruption suspected");
         ret |=  (cast(T)b & 127)  << offset;
 
         offset+=7;
-        if (!( b & 128)) break;
+        if (0 == (b & 128) ) break;
     }
 
     return ret;
@@ -99,17 +99,37 @@ T[] fromVarIntArray(T)(in ubyte[] input, uint size){
         ret |=  (cast(T)b & 127)  << offset;
         offset+=7;
 
-        if (!( b & 128)) {
+        if (0 == (b & 128) ) {
             result ~= ret;
             ret = 0;
             offset = 0;
+            if (0 == --size) break;
         }
+
     }
 
-
-
-
     return result;
+}
+import freck.streams.streaminterface;
+T[] fromVarIntStream(T)(StreamInterface si, uint size){
+    auto result = new T[0];
+
+    T ret = 0;
+    ushort offset = 0;
+    while (size){
+        ubyte b = si.read();
+        debug assert(offset < T.sizeof*8, "That number is too large. Curruption suspected");
+        ret |=  (cast(T)b & 127)  << offset;
+        offset+=7;
+        if (0 == (b & 128) ) {
+            result ~= ret;
+            ret = 0;
+            offset = 0;
+            if (0 == --size) break;
+        }
+    }
+    return result;
+
 }
 
 unittest{
@@ -130,10 +150,26 @@ unittest{
 }
 
 unittest{
+    ubyte[] varMem  =toVarInt!uint(69) ~ toVarInt!uint(420) ~ toVarInt!uint(74823) ~ toVarInt!uint(uint.max - 1) ~ toVarInt!uint(128) ~ toVarInt!uint(256) ~ toVarInt!uint(127);
     uint[] d = fromVarIntArray!uint(
-        toVarInt!uint(69) ~ toVarInt!uint(420) ~ toVarInt!uint(74823) ~ toVarInt!uint(uint.max - 1) ~ toVarInt!uint(128) ~ toVarInt!uint(256) ~ toVarInt!uint(127),
-        4U
+        varMem,
+        7U
     );
-    assert(d == [69, 420, 74823, uint.max - 1, 128, 256, 127]);
+    assert(d == [69, 420, 74823, uint.max - 1, 128, 256, 127], "Failed to read varInts from ubyte[]");
+    d = fromVarIntArray!uint(
+        varMem,
+        6U
+    );
+    assert(d == [69, 420, 74823, uint.max - 1, 128, 256], "Failed to truncate varInts from ubyte[]");
+
+    import freck.streams.memorystream;
+    auto stream = MemoryStream.fromBytes(varMem);
+    stream.seek(0);
+    d = fromVarIntStream!uint(stream, 7u);
+    assert(d == [69, 420, 74823, uint.max - 1, 128, 256, 127], "Failed to read varInts from stream]");
+    stream.seek(0);
+    d = fromVarIntStream!uint(stream, 6u);
+    assert(d == [69, 420, 74823, uint.max - 1, 128, 256], "Failed to truncate varInts from stream");
+
     "Passed multiple varInt test".writeln();
 }
