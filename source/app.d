@@ -7,7 +7,7 @@ import dustyfs : DustyFs;
 
 
 void main(){
-    fromVarInt!ubyte(toVarInt!ulong(0)).writeln();
+    fromVarInt!ubyte(toVarInt!ushort(258)).writeln();
     //auto allocator = new DustyFs("fs.dust", true);
     //allocator.alloc(100).writeln();
 

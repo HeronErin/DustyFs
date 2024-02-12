@@ -71,12 +71,12 @@ T fromVarInt(T)(in ubyte[] input){
     T ret = 0;
     ushort offset = 0;
     foreach(ubyte b ; input){
+        assert(offset < T.sizeof*8, "That number is too large. Curruption suspected");
+
         ret |=  (cast(T)b & 127)  << offset;
 
 
         offset+=7;
-        assert(offset < T.sizeof*8, "That number is too large. Curruption suspected");
-
         if (!( b & 128)) break;
     }
 
@@ -87,4 +87,12 @@ unittest{
     foreach (uint x ; 0..5000){
         assert(fromVarInt!uint(toVarInt(x)) == x, "VarInt conversion error");
     }
+    foreach (ushort x ; 1..64){
+        ulong testBase = 1 << x;
+        assert(fromVarInt!ulong(toVarInt!ulong(testBase)) == testBase, "VarInt conversion error");
+        foreach (ulong y ; 0..5000){
+            assert(fromVarInt!ulong(toVarInt(y+testBase)) == y+testBase, "VarInt conversion error");
+        }
+    }
+    "Passed varint test".writeln();
 }
