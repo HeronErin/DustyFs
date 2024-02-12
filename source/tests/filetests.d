@@ -2,6 +2,7 @@ module filetests;
 import std.stdio;
 import falloc;
 import freck.streams.filestream;
+static import core.exception;
 
 // Test basic falloc usage
 unittest{
