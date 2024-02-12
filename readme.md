@@ -1,4 +1,6 @@
 # Dusty FS
+![Tests workflow](https://github.com/github/docs/actions/workflows/tests.yml/badge.svg)
+
 
 This is still an **early** WIP.
 
