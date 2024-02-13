@@ -18,3 +18,5 @@ testing
 stream.txt
 *.dust
 */*.dust
+.idea.
+.idea/*
