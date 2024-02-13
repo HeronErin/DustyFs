@@ -7,7 +7,7 @@ public enum Endianness
     BigEndian
 }
 import std.algorithm.mutation;
-
+import freck.streams.streaminterface;
 
 // Credit: https://github.com/cetio/caiman/blob/main/source/caiman/conv.d
 
@@ -110,7 +110,7 @@ T[] fromVarIntArray(T)(in ubyte[] input, uint size){
 
     return result;
 }
-import freck.streams.streaminterface;
+
 T[] fromVarIntStream(T)(StreamInterface si, uint size){
     auto result = new T[0];
 
@@ -132,44 +132,21 @@ T[] fromVarIntStream(T)(StreamInterface si, uint size){
 
 }
 
-unittest{
-    foreach (uint x ; 0..5000){
-        assert(fromVarInt!uint(toVarInt(x)) == x, "VarInt conversion error");
-    }
-    foreach (ushort x ; 1..64){
-        ulong testBase = 1 << x;
-        assert(fromVarInt!ulong(toVarInt!ulong(testBase)) == testBase, "VarInt conversion error");
-        foreach (ulong y ; 0..5000){
-            assert(fromVarInt!ulong(toVarInt(y+testBase)) == y+testBase, "VarInt conversion error");
-        }
-    }
+T readInt(T)(StreamInterface si){
+    ubyte[] readData = si.read(T.sizeof);
+    //import std.conv;
+    assert( readData.length == T.sizeof, "readInt() failed due it insufficient file size!");
 
-    assert(fromVarInt!uint(toVarInt(uint.max - 1)) == uint.max - 1, "VarInt conversion error");
-    assert(fromVarInt!uint(toVarInt(uint.max)) == uint.max, "VarInt conversion error");
-    "Passed varint test".writeln();
+    T val = ( cast(T[]) readData)[0];
+    val = utils.fromEndian!T(val, utils.Endianness.LittleEndian);
+    return val;
 }
 
-unittest{
-    ubyte[] varMem  =toVarInt!uint(69) ~ toVarInt!uint(420) ~ toVarInt!uint(74823) ~ toVarInt!uint(uint.max - 1) ~ toVarInt!uint(128) ~ toVarInt!uint(256) ~ toVarInt!uint(127);
-    uint[] d = fromVarIntArray!uint(
-        varMem,
-        7U
-    );
-    assert(d == [69, 420, 74823, uint.max - 1, 128, 256, 127], "Failed to read varInts from ubyte[]");
-    d = fromVarIntArray!uint(
-        varMem,
-        6U
-    );
-    assert(d == [69, 420, 74823, uint.max - 1, 128, 256], "Failed to truncate varInts from ubyte[]");
-
-    import freck.streams.memorystream;
-    auto stream = MemoryStream.fromBytes(varMem);
-    stream.seek(0);
-    d = fromVarIntStream!uint(stream, 7u);
-    assert(d == [69, 420, 74823, uint.max - 1, 128, 256, 127], "Failed to read varInts from stream]");
-    stream.seek(0);
-    d = fromVarIntStream!uint(stream, 6u);
-    assert(d == [69, 420, 74823, uint.max - 1, 128, 256], "Failed to truncate varInts from stream");
-
-    "Passed multiple varInt test".writeln();
+void writeInt(T)(StreamInterface si, T val){
+    val = utils.toEndian!T(val, utils.Endianness.LittleEndian);
+    ubyte[] next = (cast(ubyte*)&val)[0..T.sizeof];
+    si.write(next);
 }
+
+
+

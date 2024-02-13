@@ -8,5 +8,12 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="freck-streams-1.2.0" level="project" />
+    <orderEntry type="library" name="caiman-0.0.1" level="project" />
+    <orderEntry type="library" name="tanya-0.19.0" level="project" />
+    <orderEntry type="library" name="tanya:test-0.19.0" level="project" />
+    <orderEntry type="library" name="tanya:middle-0.19.0" level="project" />
+    <orderEntry type="library" name="tanya:meta-0.19.0" level="project" />
+    <orderEntry type="library" name="tanya:os-0.19.0" level="project" />
+    <orderEntry type="library" name="mir-linux-kernel-1.0.1" level="project" />
   </component>
 </module>

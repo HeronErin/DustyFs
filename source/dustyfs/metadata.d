@@ -3,6 +3,8 @@ import freck.streams.streaminterface;
 import std.stdio;
 import std.typecons;
 
+import utils;
+
 // Meta data has two types.
 //   1. Metadata, which is stored in the file itself
 //   2. MetaMetadata, which is stored in all directory listings.
@@ -13,26 +15,105 @@ enum NodeType : ubyte{
     SymLink
 }
 
+// MetaData values are stored in the following format:
+//  Amount of key/value pairs (ubyte):
+//  List of Keys: (ubytes)
+//  List of values Values: (VarInt ulong)
+
+//  Rest of file...
+
+enum MetaDataKeys : ubyte{
+    CreationDate,
+    AccessDate,
+    PermisionBitmap,
+    NodeHash,          // 0 = not yet taken. 1 = Never to be taken other. else: the last hash
+    IsLocked           // 1 = never to be changed (validated with hash), 0 = not locked
+}
+struct MetaData{
+    ulong CreationDate = 0;
+    ulong AccessDate = 0;
+    ulong PermisionBitmap = 0;
+    ulong NodeHash = 0;
+    ulong IsLocked = 0;
+
+    uint LengthOfMetadata = 0;
+
+    @property ulong*[ubyte] lookupTable() =>[
+        MetaDataKeys.CreationDate: &this.CreationDate,
+        MetaDataKeys.AccessDate: &this.AccessDate,
+        MetaDataKeys.PermisionBitmap: &this.PermisionBitmap,
+        MetaDataKeys.NodeHash: &this.NodeHash,
+        MetaDataKeys.IsLocked: &this.IsLocked
+    ];
+}
+
+
+
+interface NodeWithMetadata{
+    bool isDirty();
+    void write();
+}
+MetaData readMetadata(StreamInterface si){
+    si.seek(0);
+    ubyte amount = si.readInt!ubyte();
+    ubyte[] keys = si.read(amount);
+
+    debug assert(keys.length == amount, "File read error");
+
+    ulong[] values = si.fromVarIntStream!ulong(amount);
+
+    debug assert(values.length == amount, "File read error");
+
+    MetaData result;
+    auto table = result.lookupTable;
+
+    int i = 0;
+    foreach (ubyte key ; keys){
+        scope (exit) i++;
+
+        ulong** writeTo = key in table;
+        debug assert(writeTo, "Key not found: " ~ key);
+
+        **writeTo = values[i];
+    }
+
+
+    return result;
+
+}
+
+void writeMetadata(StreamInterface si, MetaData meta){
+
+}
+
+struct MetaMetaData{
+    NodeType nodeType;
+    string name;
+    uint size;
+    uint ptr;
+
+    bool isDirty = false;
+    uint metaMetaDataOffset = 0;
+}
+
+
 bool isValidFileName(string name){
     if (name.length > 255) return false;
     if (name.length == 0) return false;
     return true;
 }
 
-import utils;
-void writeMetaMetadata(StreamInterface file, NodeType nodeType, string name, uint size, uint ptr){
-    import std.array;
 
-    assert(isValidFileName(name), "Invalid name");
+void writeMetaMetadata(StreamInterface file, MetaMetaData mmd){
+    assert(isValidFileName(mmd.name), "Invalid name");
+    mmd.writeln();
     file.write(
-            [cast(ubyte) nodeType, cast(ubyte) name.length] ~
-            toVarInt(size) ~
-            toVarInt(ptr)
-
+            [cast(ubyte) mmd.nodeType, cast(ubyte) mmd.name.length] ~
+            toVarInt(mmd.size) ~
+            toVarInt(mmd.ptr)  ~ (cast(ubyte[]) mmd.name)
     );
-    file.write(cast(ubyte[]) name);
 }
-Tuple!(NodeType, string, uint, uint) readMetaMetadata(StreamInterface file){
+MetaMetaData readMetaMetadata(StreamInterface file){
     ubyte[] nodeType_len = file.read(2);
 
     assert(nodeType_len.length == 2, "Can't read first elements of MetaMetadata");
@@ -46,16 +127,17 @@ Tuple!(NodeType, string, uint, uint) readMetaMetadata(StreamInterface file){
     ubyte[] name = file.read(nodeType_len[1]);
 
     assert(name.length == nodeType_len[1], "Can't read name in MetaMetadata");
-    return tuple(cast(NodeType)nodeType_len[0], cast(string)name, size_ptr[0], size_ptr[1]);
+    MetaMetaData ret;
+    ret.nodeType = cast(NodeType)nodeType_len[0];
+    ret.name = cast(string) name;
+    ret.size = size_ptr[0];
+    ret.ptr = size_ptr[1];
+    return ret;
+
 
 }
-unittest{
-    //import freck.streams.memorystream;
 
-    //auto stream = MemoryStream.fromBytes([]);
-    //writeMetaMetadata(stream, NodeType.Directory, "Hello world!", 50000, 420000);
-    //stream.seek(0);
-    //readMetaMetadata(stream).writeln();
-    //assert(readMetaMetadata(stream) == Tuple!(NodeType, string, uint, uint)(NodeType.Directory, "Hello world!", 69, 420));
 
-}
+
+
+

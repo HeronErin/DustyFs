@@ -43,20 +43,7 @@ class FileAlloc{
     StreamInterface file;
     protected Section[] sections;
 
-    void writeInt(T)(T val){
-        val = utils.toEndian!T(val, utils.Endianness.LittleEndian);
-        ubyte[] next = (cast(ubyte*)&val)[0..T.sizeof];
-        file.write(next);
-    }
-    T readInt(T)(){
-        ubyte[] readData = file.read(T.sizeof);
-        //import std.conv;
-        assert( readData.length == T.sizeof, "readInt() failed due it insufficient file size!");
 
-        T val = ( cast(T[]) readData)[0];
-        val = utils.fromEndian!T(val, utils.Endianness.LittleEndian);
-        return val;
-    }
     protected T readIntFromBytes(T)(in ubyte[] readData){
 
         assert( readData.length == T.sizeof, "readIntFromBytes() failed due it insufficient file size!");
@@ -68,18 +55,18 @@ class FileAlloc{
 
 
     protected void writeChunckHeader(uint nextprt, bool isFree){
-        writeInt(nextprt);
-        writeInt(isFree);
+        file.writeInt(nextprt);
+        file.writeInt(isFree);
     }
     protected Tuple!(uint, bool) readChunckHeader(){
-        return tuple(readInt!uint(), readInt!bool());
+        return tuple(file.readInt!uint(), file.readInt!bool());
     }
 
     protected Tuple!(uint, uint, uint) readSectionHeader(){
         return tuple(
-            readInt!uint(),
-            readInt!uint(),
-            readInt!uint()
+            file.readInt!uint(),
+            file.readInt!uint(),
+            file.readInt!uint()
         );
     }
 
@@ -93,9 +80,9 @@ class FileAlloc{
 
         void write(){
             parent.file.seek(offset);
-            parent.writeInt(size);
-            parent.writeInt(spaceUsed);
-            parent.writeInt(largestFailedAlloc);
+            parent.file.writeInt(size);
+            parent.file.writeInt(spaceUsed);
+            parent.file.writeInt(largestFailedAlloc);
         }
     }
 
@@ -247,7 +234,7 @@ class FileAlloc{
     void free(uint ptr){
         if (ptr == -1) throw new StringException("Invalid pointer (from failure of alloc)");
         file.seek(ptr-1);
-        const auto isFreeByte = readInt!ubyte();
+        const auto isFreeByte = file.readInt!ubyte();
         assert(isFreeByte==0 || isFreeByte==1, "Invalid pointer (file position is not same as returned by alloc)");
 
         file.seek(ptr-SIZE_OF_CHUNCK_HEADER);

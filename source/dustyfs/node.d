@@ -34,15 +34,15 @@ struct SubNode{
 
     void write(FileAlloc alloc){
         alloc.file.seek(offset);
-        alloc.writeInt!uint(nextPrt);
-        alloc.writeInt!ushort(subNodeSize);
+        alloc.file.writeInt!uint(nextPrt);
+        alloc.file.writeInt!ushort(subNodeSize);
     }
     static SubNode fromOffset(FileAlloc alloc, uint offset){
         alloc.file.seek(offset);
         return SubNode(
             offset,
-            alloc.readInt!uint(),
-            alloc.readInt!ushort()
+            alloc.file.readInt!uint(),
+            alloc.file.readInt!ushort()
         );
     }
 }
@@ -70,10 +70,10 @@ class NodeStream : StreamInterface{
 
         parent.allocator.file.seek(start);
 
-        parent.allocator.writeInt!uint(0);                  // Next pointer
-        parent.allocator.writeInt!ushort(initialNodeSize);  // Sub-node size
-        parent.allocator.writeInt!uint(reserveSize);      // On-disk, reserved, node size
-        parent.allocator.writeInt!uint(0);                  // Userland file size
+        parent.allocator.file.writeInt!uint(0);                  // Next pointer
+        parent.allocator.file.writeInt!ushort(initialNodeSize);  // Sub-node size
+        parent.allocator.file.writeInt!uint(reserveSize);      // On-disk, reserved, node size
+        parent.allocator.file.writeInt!uint(0);                  // Userland file size
 
         this(parent, start, start);
         if (!weMustSplitUp) return;
@@ -113,8 +113,8 @@ class NodeStream : StreamInterface{
         this.allocator = parent.allocator;
 
         this.nodes ~= SubNode.fromOffset(parent.allocator, offset);
-        this.reservedSize = parent.allocator.readInt!uint();
-        this.userlandSize = parent.allocator.readInt!uint();
+        this.reservedSize = parent.allocator.file.readInt!uint();
+        this.userlandSize = parent.allocator.file.readInt!uint();
         userlandPos=0;
     }
 
@@ -269,19 +269,20 @@ class NodeStream : StreamInterface{
 
     string getMetadata(string key) => parent.allocator.file.getMetadata(key);
 
-    void writeInt(T)(T val){
-        val = utils.toEndian!T(val, utils.Endianness.LittleEndian);
-        ubyte[] next = (cast(ubyte*)&val)[0..T.sizeof];
-        this.write(next);
-    }
-    T readInt(T)(){
-        ubyte[] readData = this.read(T.sizeof);
-        //import std.conv;
-        assert( readData.length == T.sizeof, "readInt() failed due it insufficient file size!");
 
-        T val = ( cast(T[]) readData)[0];
-        val = utils.fromEndian!T(val, utils.Endianness.LittleEndian);
-        return val;
-    }
+    //void writeInt(T)(T val){
+    //    val = utils.toEndian!T(val, utils.Endianness.LittleEndian);
+    //    ubyte[] next = (cast(ubyte*)&val)[0..T.sizeof];
+    //    this.write(next);
+    //}
+    //T readInt(T)(){
+    //    ubyte[] readData = this.read(T.sizeof);
+    //    //import std.conv;
+    //    assert( readData.length == T.sizeof, "readInt() failed due it insufficient file size!");
+    //
+    //    T val = ( cast(T[]) readData)[0];
+    //    val = utils.fromEndian!T(val, utils.Endianness.LittleEndian);
+    //    return val;
+    //}
 }
 

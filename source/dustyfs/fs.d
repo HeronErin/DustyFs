@@ -5,6 +5,7 @@ import freck.streams.streaminterface;
 
 import falloc;
 import dustyfs.node : NodeStream;
+import dustyfs.dirnode;
 import std.stdio;
 
 class DustyFs{
@@ -12,14 +13,11 @@ class DustyFs{
     this(string path, bool doInit=false){
         this.allocator = new falloc.FileAlloc(new FileStream(path, doInit ? "w+b" : "r+b"), doInit);
         if (doInit){
-            NodeStream node = new NodeStream(this, 5);
-            node.seek(0);
-            node.write(cast(ubyte[]) "1234");
-            node.seek(2, Seek.cur);
-            node.write('%');
-            node.write(cast(ubyte[]) "123456789");
-            node.seek(0);
-                (cast(string)node.read(50)).writeln();
+            auto node = new DirNode(this, 5);
+            node.mkDir("Test");
+            node.write();
+            node.nodeWriter.initialOffset.writeln();
+
 
         }
     }

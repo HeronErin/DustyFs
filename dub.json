@@ -3,6 +3,7 @@
 		"HeronErin"
 	],
 	"dependencies": {
+		"caiman": "~>0.1.0",
 		"freck-streams": "~>1.2.0"
 	},
 	"description": "A minimal D application.",

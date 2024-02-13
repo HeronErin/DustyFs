@@ -6,10 +6,17 @@ import dustyfs : DustyFs;
 
 
 
+
+uint triple(uint value) {
+    return value * 3;
+}
+
 void main(){
-    fromVarInt!ubyte(toVarInt!ushort(258)).writeln();
-    //auto allocator = new DustyFs("fs.dust", true);
+    //3.triple().writeln();
+    //fromVarInt!ubyte(toVarInt!ushort(258)).writeln();
+    //auto fs = new DustyFs("fs.dust", true);
     //allocator.alloc(100).writeln();
+
 
 
 
