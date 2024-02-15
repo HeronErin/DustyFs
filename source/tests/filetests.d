@@ -30,6 +30,8 @@ unittest{
     assert(150 == allocator.alloc(5*1024*1024));
     assert(10485797 == allocator.alloc(5*1024*1024));
 
+    allocator.close();
+
     "Passed basic usage test".writeln();
     //allocator.printAllocTree();
 }
@@ -40,11 +42,15 @@ unittest{
 
     auto allocator = new falloc.FileAlloc(new FileStream("reopen.dust", "wb+"), true);
     assert(25 == allocator.alloc(100));
-    allocator.destroy();
+
+    allocator.close();
 
 
     allocator = new falloc.FileAlloc(new FileStream("reopen.dust", "rb+"), false);
     assert(130 == allocator.alloc(100));
+
+    allocator.close();
+
 
     "Passed opening a pre-written file test".writeln();
     //allocator.alloc(100).writeln();

@@ -1,5 +1,5 @@
 module falloc;
-import freck.streams.streaminterface;
+import freck.streams.filestream;
 import std.stdio;
 import std.string : StringException;
 import std.typecons;
@@ -40,8 +40,9 @@ import std.math;
 
 
 class FileAlloc{
-    StreamInterface file;
+    FileStream file;
     protected Section[] sections;
+    protected bool isClosed = false;
 
 
     protected T readIntFromBytes(T)(in ubyte[] readData){
@@ -89,7 +90,7 @@ class FileAlloc{
 
     // WARNING: This will effectivly take ownership of the file object.
     // Only use the file object through this class! Otherwise undefined behaviour!
-    this(StreamInterface file, bool doInit=false){
+    this(FileStream file, bool doInit=false){
         this.file=file;
         file.seek(0);
 
@@ -142,13 +143,18 @@ class FileAlloc{
             throw new StringException("File either corrupt or not found. Please set doInit to true.");
 
     }
-    ~this(){
+    ~this() => assert(this.isClosed, "This object MUST be closed. This can be done by calling the .close function");
+
+    void close(){
+        if (this.isClosed) return;
+        assert(this.file !is null);
+
+        this.isClosed = true;
+
         foreach (ref section ; this.sections){
             section.write();
         }
-        // This will bring down the file object with the allocator.
-        file.destroy();
-        file = null; // Better a null pointer exception than use after free. Right?
+        this.file.destroy();
     }
     uint alloc(uint size, bool recursion=false){
 

@@ -2,6 +2,7 @@ module dustyfs.metadata;
 import freck.streams.streaminterface;
 import std.stdio;
 import std.typecons;
+import caiman.typecons : Atomic;
 
 import utils;
 //import caiman.typecons : Nullable;
