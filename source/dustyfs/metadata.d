@@ -4,7 +4,7 @@ import std.stdio;
 import std.typecons;
 
 import utils;
-
+//import caiman.typecons : Nullable;
 // Meta data has two types.
 //   1. Metadata, which is stored in the file itself
 //   2. MetaMetadata, which is stored in all directory listings.
@@ -30,15 +30,15 @@ enum MetaDataKeys : ubyte{
     IsLocked           // 1 = never to be changed (validated with hash), 0 = not locked
 }
 struct MetaData{
-    ulong CreationDate = 0;
-    ulong AccessDate = 0;
-    ulong PermisionBitmap = 0;
-    ulong NodeHash = 0;
-    ulong IsLocked = 0;
+    Nullable!ulong CreationDate;
+    Nullable!ulong AccessDate;
+    Nullable!ulong PermisionBitmap;
+    Nullable!ulong NodeHash;
+    Nullable!ulong IsLocked;
 
     uint LengthOfMetadata = 0;
 
-    @property ulong*[ubyte] lookupTable() =>[
+    @property Nullable!ulong*[ubyte] lookupTable() =>[
         MetaDataKeys.CreationDate: &this.CreationDate,
         MetaDataKeys.AccessDate: &this.AccessDate,
         MetaDataKeys.PermisionBitmap: &this.PermisionBitmap,
@@ -71,7 +71,7 @@ MetaData readMetadata(StreamInterface si){
     foreach (ubyte key ; keys){
         scope (exit) i++;
 
-        ulong** writeTo = key in table;
+        Nullable!ulong** writeTo = key in table;
         debug assert(writeTo, "Key not found: " ~ key);
 
         **writeTo = values[i];
