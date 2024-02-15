@@ -6,11 +6,6 @@ import dustyfs : DustyFs;
 
 
 
-
-uint triple(uint value) {
-    return value * 3;
-}
-
 void main(){
     //3.triple().writeln();
     //fromVarInt!ubyte(toVarInt!ushort(258)).writeln();
