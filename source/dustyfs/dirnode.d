@@ -22,14 +22,14 @@ class DirNode : NodeWithMetadata{
 
     this(DustyFs parent, uint reserveSize = 1024){
         this.parent = parent;
-        this.nodeWriter = new NodeStream(parent, reserveSize);
+        this.nodeWriter = new NodeStream(parent.allocator, reserveSize);
         this.file_ptr = nodeWriter.initialOffset;
 
         this.dirty = true;
     }
     this(uint offset, DustyFs parent){
         this.parent = parent;
-        this.nodeWriter = new NodeStream(offset, parent);
+        this.nodeWriter = new NodeStream(offset, parent.allocator);
         this.file_ptr = offset;
         nodeWriter.seek(0);
         assert(nodeWriter.readInt!ubyte == NodeType.Directory, "Attempted to load something other than a directory as a directory!");

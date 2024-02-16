@@ -42,7 +42,7 @@ import std.math;
 class FileAlloc{
     StreamInterface file;
     protected Section[] sections;
-    protected bool isClosed = false;
+    bool isClosed = false;
 
 
     protected T readIntFromBytes(T)(in ubyte[] readData){
@@ -88,17 +88,17 @@ class FileAlloc{
     }
 
 
-    // WARNING: This will effectivly take ownership of the file object.
-    // Only use the file object through this class! Otherwise undefined behaviour!
     this(StreamInterface file, bool doInit=false){
         this.file=file;
         file.seek(0);
 
+        //const auto from_file = file.read(SIZE_OF_HEADER_STRING);
+        if (!doInit){
+            const auto from_file = file.read(SIZE_OF_HEADER_STRING);
+            assert(from_file == HEADER_STRING, "Currupted file");
 
 
-        const auto from_file = file.read(SIZE_OF_HEADER_STRING);
-        if (from_file == HEADER_STRING){
-            log("Loading an allocator from a file");
+
             uint pos = SIZE_OF_HEADER_STRING;
             while(1){
                 file.seek(pos);
@@ -120,7 +120,7 @@ class FileAlloc{
                 if (pos > file.length()) return;
 
             }
-        }else if (doInit){
+        }else{
             log("Initilizing an allocator to a file");
             file.seek(0);
             file.write(cast(ubyte[]) HEADER_STRING);
@@ -139,8 +139,7 @@ class FileAlloc{
 
             writeChunckHeader(0, true);
         }
-        else
-            throw new StringException("File either corrupt or not found. Please set doInit to true.");
+
 
     }
     ~this() => assert(this.isClosed, "This object MUST be closed. This can be done by calling the .close function");

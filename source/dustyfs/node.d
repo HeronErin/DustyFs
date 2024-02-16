@@ -48,7 +48,7 @@ struct SubNode{
 }
 
 class NodeStream : StreamInterface{
-    DustyFs parent;
+    //DustyFs parent;
     protected FileAlloc allocator;
     protected bool isClosed = false;
     protected bool isDirty = false;
@@ -62,20 +62,22 @@ class NodeStream : StreamInterface{
     SubNode[] nodes;
 
     // Make new node
-    this(DustyFs parent, uint reserveSize=DEFAULT_NODE_CREATION_SIZE){
+    this(FileAlloc parent, uint reserveSize=DEFAULT_NODE_CREATION_SIZE){
         reserveSize+=SIZE_OF_INITIAL_NODE_HEADER;
 
         bool weMustSplitUp = ushort.max <= reserveSize;
         ushort initialNodeSize =  weMustSplitUp ? ushort.max : cast(ushort)reserveSize ;
+        allocator=parent;
 
-        const int start = parent.allocator.alloc(reserveSize);
 
-        parent.allocator.file.seek(start);
+        const int start = allocator.alloc(reserveSize);
 
-        parent.allocator.file.writeInt!uint(0);                  // Next pointer
-        parent.allocator.file.writeInt!ushort(initialNodeSize);  // Sub-node size
-        parent.allocator.file.writeInt!uint(reserveSize);      // On-disk, reserved, node size
-        parent.allocator.file.writeInt!uint(0);                  // Userland file size
+        allocator.file.seek(start);
+
+        allocator.file.writeInt!uint(0);                  // Next pointer
+        allocator.file.writeInt!ushort(initialNodeSize);  // Sub-node size
+        allocator.file.writeInt!uint(reserveSize);      // On-disk, reserved, node size
+        allocator.file.writeInt!uint(0);                  // Userland file size
 
         this(start, parent);
         if (!weMustSplitUp) return;
@@ -110,15 +112,15 @@ class NodeStream : StreamInterface{
     }
 
     // From existing node
-    this(uint offset, DustyFs parent){
-        this.parent = parent;
+    this(uint offset, FileAlloc parent){
+        //this.parent = parent;
         this.initialOffset = offset;
         this.knownEndNodeOffset = offset;
-        this.allocator = parent.allocator;
+        this.allocator = parent;
 
-        this.nodes ~= SubNode.fromOffset(parent.allocator, offset);
-        this.reservedSize = parent.allocator.file.readInt!uint();
-        this.userlandSize = parent.allocator.file.readInt!uint();
+        this.nodes ~= SubNode.fromOffset(allocator, offset);
+        this.reservedSize = allocator.file.readInt!uint();
+        this.userlandSize = allocator.file.readInt!uint();
         userlandPos=0;
     }
 
@@ -126,12 +128,12 @@ class NodeStream : StreamInterface{
     import std.string : StringException;
 
     void setEndian(Endian _) => throw new StringException("Not a supported operation.");
-    Endian getEndian() => parent.allocator.file.getEndian();
+    Endian getEndian() => allocator.file.getEndian();
     ssize_t length() => userlandSize;
-    bool isEmpty() => parent.allocator.file.isEmpty();
-    bool isSeekable() => parent.allocator.file.isSeekable();
-    bool isWritable() => parent.allocator.file.isWritable();
-    bool isReadable() => parent.allocator.file.isReadable();
+    bool isEmpty() => allocator.file.isEmpty();
+    bool isSeekable() => allocator.file.isSeekable();
+    bool isWritable() => allocator.file.isWritable();
+    bool isReadable() => allocator.file.isReadable();
 
     uint userlandPos = 0;
 
@@ -277,7 +279,7 @@ class NodeStream : StreamInterface{
         return this.read(userlandSize);
     }
 
-    string getMetadata(string key) => parent.allocator.file.getMetadata(key);
+    string getMetadata(string key) => allocator.file.getMetadata(key);
 
 
     void close(){
@@ -290,7 +292,7 @@ class NodeStream : StreamInterface{
         allocator.file.writeInt!uint(this.userlandSize);
     }
     ~this(){
-        if (!isClosed && !parent.closed)
+        if (!isClosed && !allocator.isClosed)
             this.close();
         else if (!isClosed)
             assert(0, "NodeStream was not closed. A NodeStream must never outlive the DustyFs it is a child of. Please manuelly call the .close() method!");
