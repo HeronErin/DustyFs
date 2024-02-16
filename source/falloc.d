@@ -1,5 +1,5 @@
 module falloc;
-import freck.streams.filestream;
+import freck.streams.streaminterface;
 import std.stdio;
 import std.string : StringException;
 import std.typecons;
@@ -40,7 +40,7 @@ import std.math;
 
 
 class FileAlloc{
-    FileStream file;
+    StreamInterface file;
     protected Section[] sections;
     protected bool isClosed = false;
 
@@ -90,7 +90,7 @@ class FileAlloc{
 
     // WARNING: This will effectivly take ownership of the file object.
     // Only use the file object through this class! Otherwise undefined behaviour!
-    this(FileStream file, bool doInit=false){
+    this(StreamInterface file, bool doInit=false){
         this.file=file;
         file.seek(0);
 

@@ -1,8 +1,8 @@
 module dustyfs.metadata;
 import freck.streams.streaminterface;
 import std.stdio;
-import std.typecons;
-import caiman.typecons : Atomic;
+//import std.typecons;
+import caiman.typecons;
 
 import utils;
 //import caiman.typecons : Nullable;
@@ -30,6 +30,8 @@ enum MetaDataKeys : ubyte{
     NodeHash,          // 0 = not yet taken. 1 = Never to be taken other. else: the last hash
     IsLocked           // 1 = never to be changed (validated with hash), 0 = not locked
 }
+
+
 struct MetaData{
     Nullable!ulong CreationDate;
     Nullable!ulong AccessDate;
@@ -73,7 +75,7 @@ MetaData readMetadata(StreamInterface si){
         scope (exit) i++;
 
         Nullable!ulong** writeTo = key in table;
-        debug assert(writeTo, "Key not found: " ~ key);
+        assert(writeTo, "Key not found: " ~ key);
 
         **writeTo = values[i];
     }
@@ -84,8 +86,24 @@ MetaData readMetadata(StreamInterface si){
 }
 
 void writeMetadata(StreamInterface si, MetaData meta){
+    import std.traits : EnumMembers;
 
+    auto table = meta.lookupTable();
+    auto keys = new ubyte[0];
+    auto values = new ubyte[0];
+
+    foreach (MetaDataKeys x ; [EnumMembers!MetaDataKeys]){
+        if (table[x].isNull) continue;
+        keys ~= cast(ubyte)x;
+        values ~= table[x].value.toVarInt;
+    }
+    debug assert(keys.length <= ubyte.max);
+
+    si.write(
+        [cast(ubyte) keys.length] ~ keys ~ values
+    );
 }
+
 
 struct MetaMetaData{
     NodeType nodeType;

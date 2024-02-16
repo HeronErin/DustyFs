@@ -230,7 +230,7 @@ class NodeStream : StreamInterface{
 
         uint writeArrayOffset = 0;
         foreach (ref Tuple!(uint, uint) offset_length ; this.makeLengthWiseOffsets(cast(uint) b.length)){
-            offset_length.writeln();
+            //offset_length.writeln();
             allocator.file.seek(offset_length[0]);
             allocator.file.write(
                 b[
@@ -253,7 +253,7 @@ class NodeStream : StreamInterface{
 
         uint readArrayOffset = 0;
         foreach (ref Tuple!(uint, uint) offset_length ; this.makeLengthWiseOffsets(cast(uint) n)){
-            offset_length.writeln();
+            //offset_length.writeln();
             allocator.file.seek(offset_length[0]);
             const ubyte[] fromFile = allocator.file.read(offset_length[1]);
             ret[readArrayOffset .. readArrayOffset+fromFile.length] = fromFile;

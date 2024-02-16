@@ -10,6 +10,7 @@ import std.stdio;
 
 class DustyFs{
     falloc.FileAlloc allocator;
+    bool closed = false;
     this(string path, bool doInit=false){
         this.allocator = new falloc.FileAlloc(new FileStream(path, doInit ? "w+b" : "r+b"), doInit);
         if (doInit){
@@ -17,9 +18,12 @@ class DustyFs{
             node.mkDir("Test");
             node.write();
             node.nodeWriter.initialOffset.writeln();
-
-
         }
+    }
+    ~this() => assert(this.closed, "This object MUST be closed. This can be done by calling the .close function");
+    void close(){
+        this.closed = true;
+        this.allocator.close();
     }
 }
 
