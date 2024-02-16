@@ -5,7 +5,7 @@ import std.stdio;
 import caiman.typecons;
 
 import utils;
-//import caiman.typecons : Nullable;
+
 // Meta data has two types.
 //   1. Metadata, which is stored in the file itself
 //   2. MetaMetadata, which is stored in all directory listings.
@@ -100,7 +100,9 @@ void writeMetadata(StreamInterface si, MetaData meta){
     debug assert(keys.length <= ubyte.max);
 
     si.write(
-        [cast(ubyte) keys.length] ~ keys ~ values
+        [cast(ubyte) keys.length]
+        ~ keys
+        ~ values
     );
 }
 
@@ -126,17 +128,18 @@ bool isValidFileName(string name){
 void writeMetaMetadata(StreamInterface file, MetaMetaData mmd){
     assert(isValidFileName(mmd.name), "Invalid name");
     mmd.writeln();
-    file.write(
-            [cast(ubyte) mmd.nodeType, cast(ubyte) mmd.name.length] ~
-            toVarInt(mmd.size) ~
-            toVarInt(mmd.ptr)  ~ (cast(ubyte[]) mmd.name)
-    );
+    auto b = [cast(ubyte) mmd.nodeType, cast(ubyte) mmd.name.length] ~
+        toVarInt(mmd.size) ~
+        toVarInt(mmd.ptr)  ~ (cast(ubyte[]) mmd.name);
+    b.writeln();
+    file.write(b);
 }
 MetaMetaData readMetaMetadata(StreamInterface file){
+    file.tell().writeln();
     ubyte[] nodeType_len = file.read(2);
+    nodeType_len.writeln();
 
     assert(nodeType_len.length == 2, "Can't read first elements of MetaMetadata");
-
 
 
     ubyte intReadCount = 0;

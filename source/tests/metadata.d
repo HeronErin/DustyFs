@@ -33,6 +33,5 @@ unittest{
     stream.seek(0);
     assert(stream.readMetadata() == input);
 
-
     "Passed Metadata test".writeln();
 }

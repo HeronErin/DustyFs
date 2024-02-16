@@ -8,12 +8,13 @@ import caiman.typecons;
 
 
 void main(){
-    //8.nullable().writeln();
-    //3.triple().writeln();
-    //fromVarInt!ubyte(toVarInt!ushort(258)).writeln();
-    //auto fs = new DustyFs("fs.dust", true);
-    //allocator.alloc(100).writeln();
+    DustyFs dfs = new DustyFs("dustyfs.dust", true);
+    dfs.root.mkDir("Test dirr");
+    dfs.close();
 
+    dfs = new DustyFs("dustyfs.dust", false);
+    dfs.root.listDir().writeln();
+    dfs.close();
 
 
 

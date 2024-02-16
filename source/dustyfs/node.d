@@ -50,6 +50,8 @@ struct SubNode{
 class NodeStream : StreamInterface{
     DustyFs parent;
     protected FileAlloc allocator;
+    protected bool isClosed = false;
+    protected bool isDirty = false;
 
     uint initialOffset;
     uint knownEndNodeOffset;
@@ -75,7 +77,7 @@ class NodeStream : StreamInterface{
         parent.allocator.file.writeInt!uint(reserveSize);      // On-disk, reserved, node size
         parent.allocator.file.writeInt!uint(0);                  // Userland file size
 
-        this(parent, start, start);
+        this(start, parent);
         if (!weMustSplitUp) return;
 
         reserveSize -= ushort.max;
@@ -102,11 +104,13 @@ class NodeStream : StreamInterface{
 
         userlandPos=0;
 
+        isDirty=true;
+
 
     }
 
     // From existing node
-    this(DustyFs parent, uint offset, uint endingOffset){
+    this(uint offset, DustyFs parent){
         this.parent = parent;
         this.initialOffset = offset;
         this.knownEndNodeOffset = offset;
@@ -207,6 +211,7 @@ class NodeStream : StreamInterface{
         long writeExtent = userlandPos + b.length;
 
         while (writeExtent > reservedSize-SIZE_OF_INITIAL_NODE_HEADER){
+            isDirty=true;
             ushort nodeSize = cast(ushort) utils.min(cast(uint)ushort.max - SIZE_OF_SUB_NODE_HEADER, writeExtent - (reservedSize - SIZE_OF_INITIAL_NODE_HEADER));
 
             auto offsetOfSubNode = allocator.alloc(nodeSize+SIZE_OF_SUB_NODE_HEADER);
@@ -215,6 +220,8 @@ class NodeStream : StreamInterface{
 
             SubNode nodeToAdd = SubNode(offsetOfSubNode, 0, cast(ushort)( nodeSize+SIZE_OF_SUB_NODE_HEADER ));
             nodes[$-1].nextPrt = nodeToAdd.offset;
+            nodes[$-1].write(allocator);
+            nodeToAdd.write(allocator);
             this.nodes ~= nodeToAdd;
 
             assert(writeExtent>=nodeSize);
@@ -225,8 +232,10 @@ class NodeStream : StreamInterface{
         writeExtent = userlandPos + b.length;
 
         // This is safe as we _should_ have extended the node to be large enough
-        if (userlandSize < writeExtent)
+        if (userlandSize < writeExtent){
             userlandSize = cast(uint) writeExtent;
+            isDirty=true;
+        }
 
         uint writeArrayOffset = 0;
         foreach (ref Tuple!(uint, uint) offset_length ; this.makeLengthWiseOffsets(cast(uint) b.length)){
@@ -250,6 +259,7 @@ class NodeStream : StreamInterface{
 
     ubyte[] read(in ulong n){
         ubyte[] ret = new ubyte[n];
+        //if (n == 0) return ret;
 
         uint readArrayOffset = 0;
         foreach (ref Tuple!(uint, uint) offset_length ; this.makeLengthWiseOffsets(cast(uint) n)){
@@ -268,6 +278,23 @@ class NodeStream : StreamInterface{
     }
 
     string getMetadata(string key) => parent.allocator.file.getMetadata(key);
+
+
+    void close(){
+        if (isClosed) return;
+        this.isClosed = true;
+        if (!isDirty) return;
+
+        nodes[0].write(allocator);
+        allocator.file.writeInt!uint(this.reservedSize);
+        allocator.file.writeInt!uint(this.userlandSize);
+    }
+    ~this(){
+        if (!isClosed && !parent.closed)
+            this.close();
+        else if (!isClosed)
+            assert(0, "NodeStream was not closed. A NodeStream must never outlive the DustyFs it is a child of. Please manuelly call the .close() method!");
+    }
 
 
     //void writeInt(T)(T val){
