@@ -74,6 +74,8 @@ class MemoryStream : StreamInterface {
         ubyte[] rslice = buf[ptr..readExtent];
         this.ptr=readExtent;
 
+        ret[0..rslice.length] = rslice;
+
         return ret;
 
     }

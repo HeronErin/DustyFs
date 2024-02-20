@@ -13,7 +13,7 @@ void main(){
     import betterMemoryStream;
 
     auto m = new MemoryStream(new ubyte[0]);
-    m.write([1, 2, 3, 4, 5]);
+    //m.write([1, 2, 3, 4, 5]);
     m.getContents().writeln();
 
     //DustyFs dfs = new DustyFs("dustyfs.dust", true);
