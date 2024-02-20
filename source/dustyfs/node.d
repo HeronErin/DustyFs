@@ -316,19 +316,5 @@ class NodeStream : StreamInterface{
     }
 
 
-    //void writeInt(T)(T val){
-    //    val = utils.toEndian!T(val, utils.Endianness.LittleEndian);
-    //    ubyte[] next = (cast(ubyte*)&val)[0..T.sizeof];
-    //    this.write(next);
-    //}
-    //T readInt(T)(){
-    //    ubyte[] readData = this.read(T.sizeof);
-    //    //import std.conv;
-    //    assert( readData.length == T.sizeof, "readInt() failed due it insufficient file size!");
-    //
-    //    T val = ( cast(T[]) readData)[0];
-    //    val = utils.fromEndian!T(val, utils.Endianness.LittleEndian);
-    //    return val;
-    //}
 }
 

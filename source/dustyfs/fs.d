@@ -31,9 +31,23 @@ enum ROOT_NODE_OFFSET = 25;
 class DustyFs{
     falloc.FileAlloc allocator;
     bool closed = false;
+    FileStream fileStream = null;
     DirNode root;
+
+
+
     this(string path, bool doInit=false){
-        this.allocator = new falloc.FileAlloc(new FileStream(path, doInit ? "w+b" : "r+b"), doInit);
+        fileStream=new FileStream(path, doInit ? "w+b" : "r+b");
+        this.allocator = new falloc.FileAlloc(fileStream, doInit);
+        if (doInit){
+            root = new DirNode(this, 5);
+            assert(ROOT_NODE_OFFSET == root.file_ptr, "Root node allocation seems to be incorrect!");
+        }else{
+            root = new DirNode(ROOT_NODE_OFFSET, this);
+        }
+    }
+    this(StreamInterface file, bool doInit=false){
+        this.allocator = new falloc.FileAlloc(file, doInit);
         if (doInit){
             root = new DirNode(this, 5);
             assert(ROOT_NODE_OFFSET == root.file_ptr, "Root node allocation seems to be incorrect!");
@@ -47,6 +61,10 @@ class DustyFs{
 
         this.closed = true;
         this.allocator.close();
+
+        //if (fileStream is null) return;
+        //"Closing file".writeln();
+        //fileStream.destroy();
     }
 }
 
