@@ -15,31 +15,8 @@ unittest{
     ms = new MemoryStream(new ubyte[512]);
     assert(ms.length == 512);
 
-    assert(ms.read(5) == new ubyte[5]);
-    ms.write([1, 2, 3 ,4, 5]);
-
-    assert(ms.read(5) == new ubyte[5]);
-
-    ms.seek(-10, Seek.cur);
-    //ms.getContents.writeln();
-    assert([1, 2, 3 ,4, 5] == ms.read(5));
-
-    ms.seek(-5, Seek.cur);
-    foreach (x ; 1..6)
-        assert(ms.read == x);
-
-
-    auto before = ms.tell();
-
-    foreach (ubyte x ; 57..99)
-        ms.write(x);
-
-    ms.seek(before);
-    foreach (ubyte x ; 57..99)
-        assert(ms.read == x);
-
-    ms.seek(-1, Seek.end);
-    ms.write(0x69);
+    import baseStreamTest;
+    basicStreamTest(ms);
 
     assert(
         ms.getContents()

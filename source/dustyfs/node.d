@@ -257,6 +257,7 @@ class NodeStream : StreamInterface{
         Tuple!(uint, uint)[] offsetA = this.makeLengthWiseOffsets(1);
         debug assert(offsetA.length == 1);
         allocator.file.seek(offsetA[0][0]);
+        userlandPos++;
         return allocator.file.read();
     }
 
