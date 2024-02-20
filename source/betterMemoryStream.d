@@ -44,7 +44,7 @@ class MemoryStream : StreamInterface {
             this.ptr += pos;
 
         if (origin == Seek.end)
-            this.ptr = buf.length - origin;
+            this.ptr = buf.length + pos;
 
         assert(this.ptr >= 0, "Invalid seek");
 
