@@ -178,7 +178,7 @@ class NodeStream : StreamInterface{
         assert(0, "Not reachable");
     }
 
-
+    // TODO: This function is fucked!!!!
     Tuple!(uint, uint)[] makeLengthWiseOffsets(uint length, uint searchPos=uint.max){
         assert(length > 0);
 
@@ -223,6 +223,7 @@ class NodeStream : StreamInterface{
             if (length == 0) break;
 
         }
+        writeln("Lengthwise offsets", offsetsToReturn);
         return offsetsToReturn;
     }
 

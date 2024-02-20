@@ -26,6 +26,8 @@ import std.array;
 import utils;
 
 import dustyfs.metadata;
+import std.stdio;
+
 class DirNode : NodeWithMetadata{
     protected DustyFs parent;
     bool closed = false;
@@ -51,7 +53,9 @@ class DirNode : NodeWithMetadata{
         nodeWriter.seek(0);
         assert(nodeWriter.readInt!ubyte == NodeType.Directory, "Attempted to load something other than a directory as a directory!");
 
-        foreach(_ ; 0..nodeWriter.readInt!uint())
+        auto count = nodeWriter.readInt!uint();
+        count.writeln();
+        foreach(_ ; 0..count)
             this.listing~=nodeWriter.readMetaMetadata();
         import std.stdio;
 

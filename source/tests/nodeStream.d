@@ -8,6 +8,8 @@ import freck.streams.filestream;
 
 import utils;
 
+import std.stdio;
+
 // A lot of nested loops, but confirms nodeStream is working...
 
 unittest{
@@ -61,3 +63,39 @@ unittest{
 }
 
 
+unittest{
+    auto data = new ubyte[0];
+
+    auto mem = new MemoryStream(data);
+    auto alloc = new falloc.FileAlloc(mem, true);
+
+    auto nodeStream = new NodeStream(alloc);
+
+    enum testString = cast(ubyte[])"123455678 asdjasjdkjasdkj kajsdkj kasj dkjask jkdj  mkmasmdokasijdn iasndj nasdmoasn jodnasndko asjidnaji w asdjasjdkjasdkj kajsdkj kasj dkjask jkdj  mkmasmdokasijdn iasndj nasdmoasn jodnasndko asjidnaji wasdjasjdkjasdkj kajsdkj kasj dkjask jkdj  mkmasmdokasijdn iasndj nasdmoasn jodnasndko asjidnaji wasdjasjdkjasdkj kajsdkj kasj dkjask jkdj  mkmasmdokasijdn iasndj nasdmoasn jodnasndko asjidnaji w";
+    enum testString2 = cast(ubyte[])"_10_11_12";
+
+    enum fullTestString = testString ~ testString2;
+
+    nodeStream.write(testString);
+    nodeStream.write(testString2);
+    nodeStream.close();
+
+
+    data = mem.getContents;
+    alloc.close();
+
+    mem = new MemoryStream(data);
+    alloc = new falloc.FileAlloc(mem, false);
+
+    nodeStream = new NodeStream(25, alloc);
+
+    nodeStream.seek(0);
+    auto x = nodeStream.read(fullTestString.length);
+    x.writeln();
+    fullTestString.writeln();
+    assert(fullTestString == x);
+
+    nodeStream.close();
+    alloc.close();
+
+}

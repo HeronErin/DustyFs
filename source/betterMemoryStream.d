@@ -49,9 +49,9 @@ class MemoryStream : StreamInterface {
     }
 
     protected void extentToFix(ssize_t extent){
-        if (extent <= buf.length) return;
-        buf ~= new ubyte[extent - buf.length];
-        debug assert(extent <= buf.length);
+        if (extent < this.buf.length) return;
+        this.buf ~= new ubyte[extent - buf.length];
+        debug assert(extent <= this.buf.length);
     }
 
     ssize_t seek(in sdiff_t pos, in Seek origin = Seek.set){

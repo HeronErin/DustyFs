@@ -150,10 +150,13 @@ void writeMetaMetadata(StreamInterface file, MetaMetaData mmd){
         toVarInt(mmd.ptr)  ~ (cast(ubyte[]) mmd.name);
 
     file.write(b);
+
 }
 MetaMetaData readMetaMetadata(StreamInterface file){
+    file.tell().writeln();
     ubyte[] nodeType_len = file.read(2);
 
+    nodeType_len.writeln();
 
     assert(nodeType_len.length == 2, "Can't read first elements of MetaMetadata");
 
