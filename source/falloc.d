@@ -94,6 +94,7 @@ class FileAlloc{
 
         //const auto from_file = file.read(SIZE_OF_HEADER_STRING);
         if (!doInit){
+            "Loading an allocator from a file".writeln;
             const auto from_file = file.read(SIZE_OF_HEADER_STRING);
             assert(from_file == HEADER_STRING, "Currupted file");
 
@@ -121,7 +122,7 @@ class FileAlloc{
 
             }
         }else{
-            log("Initilizing an allocator to a file");
+            "Initilizing an allocator to a file".writeln;
             file.seek(0);
             file.write(cast(ubyte[]) HEADER_STRING);
 
@@ -135,7 +136,7 @@ class FileAlloc{
 
             sections ~= firstSection;
 
-            file.seek(FIRST_CHUNCK);
+            file.seek(firstSection.offset + SIZE_OF_SECTION_HEADER);
 
             writeChunckHeader(0, true);
         }

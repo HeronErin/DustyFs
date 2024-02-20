@@ -63,6 +63,7 @@ class NodeStream : StreamInterface{
 
     // Make new node
     this(FileAlloc parent, uint reserveSize=DEFAULT_NODE_CREATION_SIZE){
+        "Making new nodestream".writeln();
         reserveSize+=SIZE_OF_INITIAL_NODE_HEADER;
 
         bool weMustSplitUp = ushort.max <= reserveSize;
