@@ -54,7 +54,7 @@ class DirNode : NodeWithMetadata{
         foreach(_ ; 0..nodeWriter.readInt!uint())
             this.listing~=nodeWriter.readMetaMetadata();
         import std.stdio;
-        writeln("Listing loaded with ", listing.length, " items");
+
 
         this.dirty = false;
     }

@@ -144,17 +144,16 @@ bool isValidFileName(string name){
 
 void writeMetaMetadata(StreamInterface file, MetaMetaData mmd){
     assert(isValidFileName(mmd.name), "Invalid name");
-    mmd.writeln();
+
     auto b = [cast(ubyte) mmd.nodeType, cast(ubyte) mmd.name.length] ~
         toVarInt(mmd.size) ~
         toVarInt(mmd.ptr)  ~ (cast(ubyte[]) mmd.name);
-    b.writeln();
+
     file.write(b);
 }
 MetaMetaData readMetaMetadata(StreamInterface file){
-    file.tell().writeln();
     ubyte[] nodeType_len = file.read(2);
-    nodeType_len.writeln();
+
 
     assert(nodeType_len.length == 2, "Can't read first elements of MetaMetadata");
 
