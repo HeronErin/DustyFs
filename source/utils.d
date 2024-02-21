@@ -76,6 +76,8 @@ ubyte[] toVarInt(T)(T val){
     static assert(false == isFloatingPoint!T, "VarInts do not support floating point types");
     static assert(isUnsigned!T, "VarInts do not support signed types!");
 
+    if (0 == val) return [0];
+
     auto result = new ubyte[0];
     while (val){
         T next = val >> 7;

@@ -9,13 +9,13 @@ unittest{
     auto stream = new MemoryStream(new ubyte[0]);
     writeMetaMetadata(stream, MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
     writeMetaMetadata(stream, MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
-    writeMetaMetadata(stream, MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
+    writeMetaMetadata(stream, MetaMetaData(NodeType.Directory, "Hello world!", 0, 9));
 
     stream.seek(0);
 
     assert(readMetaMetadata(stream) == MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
     assert(readMetaMetadata(stream) == MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
-    assert(readMetaMetadata(stream) == MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
+    assert(readMetaMetadata(stream) == MetaMetaData(NodeType.Directory, "Hello world!", 0, 9));
 }
 unittest{
     MetaData input;
