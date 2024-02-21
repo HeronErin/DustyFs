@@ -34,6 +34,7 @@ enum NodeType : ubyte{
 }
 
 // MetaData values are stored in the following format:
+//  Type of node (ubyte)
 //  Amount of key/value pairs (ubyte):
 //  List of Keys: (ubytes)
 //  List of values Values: (VarInt ulong)
@@ -122,7 +123,6 @@ void writeMetadata(StreamInterface si, MetaData meta){
         ~ values
     );
 }
-
 
 struct MetaMetaData{
     NodeType nodeType;

@@ -117,7 +117,9 @@ class DirNode : NodeWithMetadata{
     }
 
     auto listDir(){
-        return listing;
+        import std.algorithm.iteration;
+        import dustyfs.lazyload;
+        return listing.map!(metaMetaData=>UnResolvedLazyloadItem(metaMetaData.name, metaMetaData.ptr, parent));
     }
 
 

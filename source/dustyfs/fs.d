@@ -22,11 +22,14 @@ import freck.streams.streaminterface;
 
 import falloc;
 import dustyfs.node : NodeStream;
+import dustyfs.metadata;
 import dustyfs.dirnode;
 import std.stdio;
 
 
 enum ROOT_NODE_OFFSET = 25;
+
+import dustyfs.lazyload;
 
 class DustyFs{
     falloc.FileAlloc allocator;
@@ -35,10 +38,13 @@ class DustyFs{
     DirNode root;
 
 
+    ResolvedLazyloadItem[uint] resolvableNodes;
+
 
     this(string path, bool doInit=false){
         fileStream=new FileStream(path, doInit ? "w+b" : "r+b");
         this.allocator = new falloc.FileAlloc(fileStream, doInit);
+
         if (doInit){
             root = new DirNode(this, 5);
             assert(ROOT_NODE_OFFSET == root.file_ptr, "Root node allocation seems to be incorrect!");
@@ -57,6 +63,15 @@ class DustyFs{
     }
     ~this() => assert(this.closed, "DustyFs objects MUST be closed. This can be done by calling the .close function");
     void close(){
+        foreach(res; resolvableNodes){
+            switch(res.type){
+                case NodeType.Directory:
+                    res.as!DirNode.close();
+                    break;
+                default:
+                    assert(0);
+            }
+        }
         root.close();
 
         this.closed = true;
