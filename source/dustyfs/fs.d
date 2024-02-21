@@ -1,6 +1,6 @@
 /+  This file is a part of DustyFs, a free backup utility/filesystem.
 
-    Copyright (C) 2024  HeronErin
+    Copyright (C) 2024 - HeronErin
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by

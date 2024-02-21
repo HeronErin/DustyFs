@@ -9,6 +9,7 @@ DustyFS.dll
 DustyFS.a
 DustyFS.lib
 DustyFS-test-*
+dusty_fs-test-*
 *.exe
 *.pdb
 *.o

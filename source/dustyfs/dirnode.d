@@ -1,6 +1,6 @@
 /+  This file is a part of DustyFs, a free backup utility/filesystem.
 
-    Copyright (C) 2024  HeronErin
+    Copyright (C) 2024 - HeronErin
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -54,10 +54,10 @@ class DirNode : NodeWithMetadata{
         assert(nodeWriter.readInt!ubyte == NodeType.Directory, "Attempted to load something other than a directory as a directory!");
 
         auto count = nodeWriter.readInt!uint();
-        count.writeln();
+        writeln("Reiniting dir at ", this.nodeWriter.tell(), " with ", count);
         foreach(_ ; 0..count)
             this.listing~=nodeWriter.readMetaMetadata();
-        import std.stdio;
+        
 
 
         this.dirty = false;
@@ -67,6 +67,7 @@ class DirNode : NodeWithMetadata{
         nodeWriter.writeInt!ubyte(NodeType.Directory);
         nodeWriter.writeInt!uint(cast(uint) listing.length);
 
+        writeln("Writing dir at ", this.nodeWriter.tell(), " with ", listing.length);
         foreach (ref MetaMetaData element ; listing)
             nodeWriter.writeMetaMetadata(element);
         this.dirty = false;
@@ -89,7 +90,7 @@ class DirNode : NodeWithMetadata{
 
         MetaMetaData mmd;
         mmd.nodeType = NodeType.Directory;
-        mmd.name = "Hello world";
+        mmd.name = n;
         mmd.size = 0;
         mmd.ptr = child.nodeWriter.initialOffset;
         mmd.isDirty=true; // Not written yet.

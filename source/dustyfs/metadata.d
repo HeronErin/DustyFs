@@ -1,6 +1,6 @@
 /+  This file is a part of DustyFs, a free backup utility/filesystem.
 
-    Copyright (C) 2024  HeronErin
+    Copyright (C) 2024 - HeronErin
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -148,15 +148,11 @@ void writeMetaMetadata(StreamInterface file, MetaMetaData mmd){
     auto b = [cast(ubyte) mmd.nodeType, cast(ubyte) mmd.name.length] ~
         toVarInt(mmd.size) ~
         toVarInt(mmd.ptr)  ~ (cast(ubyte[]) mmd.name);
-
     file.write(b);
 
 }
 MetaMetaData readMetaMetadata(StreamInterface file){
-    file.tell().writeln();
     ubyte[] nodeType_len = file.read(2);
-
-    nodeType_len.writeln();
 
     assert(nodeType_len.length == 2, "Can't read first elements of MetaMetadata");
 
