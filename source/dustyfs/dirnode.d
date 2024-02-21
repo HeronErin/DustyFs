@@ -54,7 +54,7 @@ class DirNode : NodeWithMetadata{
         assert(nodeWriter.readInt!ubyte == NodeType.Directory, "Attempted to load something other than a directory as a directory!");
 
         auto count = nodeWriter.readInt!uint();
-        writeln("Reiniting dir at ", this.nodeWriter.tell(), " with ", count);
+        // writeln("Reiniting dir at ", this.nodeWriter.tell(), " with ", count);
         foreach(_ ; 0..count)
             this.listing~=nodeWriter.readMetaMetadata();
         
@@ -81,10 +81,9 @@ class DirNode : NodeWithMetadata{
         listing~=meta;
         this.dirty=true;
     }
-    void mkDir(string n){
+    DirNode mkDir(string n){
         assert(isValidFileName(n));
         DirNode child = new DirNode(parent);
-        scope (exit) child.close();
 
         child.write();
 
@@ -96,6 +95,11 @@ class DirNode : NodeWithMetadata{
         mmd.isDirty=true; // Not written yet.
 
         addNode(mmd);
+
+        import dustyfs.lazyload : ResolvedLazyloadItem;
+        parent.resolvableNodes[mmd.ptr] = ResolvedLazyloadItem.from(child, mmd.ptr);
+
+        return child;
     }
     void touch(string n, int prealloc = 128){
         assert(isValidFileName(n));
@@ -116,14 +120,34 @@ class DirNode : NodeWithMetadata{
         this.close();
     }
 
-    auto listDir(){
+    import dustyfs.lazyload: UnResolvedLazyloadItem;
+    UnResolvedLazyloadItem[] listDir(){
         import std.algorithm.iteration;
-        import dustyfs.lazyload;
-        return listing.map!(metaMetaData=>UnResolvedLazyloadItem(metaMetaData.name, metaMetaData.ptr, parent));
+        return listing
+            .map!(metaMetaData=>UnResolvedLazyloadItem(metaMetaData.nodeType, metaMetaData.name, metaMetaData.ptr, parent))
+            .array();
     }
 
+    void tree(){
+        tree(0, this);
+    }
+    protected void tree(int tabLevel, DirNode dir){
+        foreach(ref item ; dir.listDir()){
+            int temp = tabLevel;
 
-
-
-
+            while (temp--) "│ ".write();
+            writeln("├─ " ~ item.name);
+            switch (item.nodeType){
+                case NodeType.Directory:
+                    DirNode subDir = item.as!DirNode;
+                    tree(tabLevel+1, subDir);
+                    break;
+                case NodeType.File:
+                    assert(0);
+                default:
+                    assert(0, "Invalid lazyloaded object!");
+                    break;
+            }
+        }
+    }
 }

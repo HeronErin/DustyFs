@@ -37,23 +37,16 @@ struct ResolvedLazyloadItem{
 }
 
 struct UnResolvedLazyloadItem{
+    NodeType nodeType;
     string name;
     uint ptr;
     DustyFs parent;
 
-    protected NodeType peekType(){
-        parent.allocator.file.seek(SIZE_OF_INITIAL_NODE_HEADER);
-
-        ubyte typeOfNode = parent.allocator.file.read();
-
-        assert (typeOfNode <= NodeType.max, "Invalid dustyfs item!");
-        return cast(NodeType) typeOfNode;
-    }
     ResolvedLazyloadItem resolve(){
         ResolvedLazyloadItem* found = ptr in parent.resolvableNodes;
         if (found) return *found;
 
-        switch(peekType()){
+        switch(nodeType){
             case NodeType.Directory:
                 DirNode dir = new DirNode(ptr, parent);
                 auto rlli = ResolvedLazyloadItem.from(dir, ptr);
@@ -62,11 +55,13 @@ struct UnResolvedLazyloadItem{
             case NodeType.File:
                 assert(0);
             default:
-                assert(0);
+                assert(0, "Invalid lazyloaded object!");
                 break;
         }
 
     }
+
+    T as(T)() => this.resolve().as!T;
 }
 
 

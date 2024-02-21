@@ -288,7 +288,7 @@ class FileAlloc{
                 file.seek(ptr);
                 auto chunckHeader = readChunckHeader();
 
-                writeln("| at ",ptr, ": ", chunckHeader[1] ? "not used" : "used");
+                writeln("| at ",ptr, ": ", (chunckHeader[1] ? "not used" : "used"));
                 ptr = chunckHeader[0];
             }
         }
