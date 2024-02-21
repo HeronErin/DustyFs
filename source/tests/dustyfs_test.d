@@ -22,6 +22,9 @@ unittest{
     d4.mkDir("a3");
     dfs.root.mkDir("Some non-test data");
 
+    import baseStreamTest;
+    basicStreamTest(d4.touch("Test").open());
+
     dfs.close();
 
     dfs = new DustyFs("dustyfs.dust", false);

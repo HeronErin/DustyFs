@@ -22,5 +22,6 @@ void main(){
     f.readInt!int().writeln();
     (cast(string)f.read(25)).writeln();
     
+    dfs.allocator.printAllocTree();
 
 }

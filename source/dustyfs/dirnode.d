@@ -157,7 +157,7 @@ class DirNode : NodeWithMetadata{
                     tree(tabLevel+1, subDir);
                     break;
                 case NodeType.File:
-                    assert(0);
+                    break;
                 default:
                     assert(0, "Invalid lazyloaded object!");
                     break;
