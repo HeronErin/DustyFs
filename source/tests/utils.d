@@ -1,7 +1,7 @@
 module tests.utils;
 import utils;
 import std.stdio;
-
+import betterMemoryStream;
 
 unittest{
     assert(max(9, 10) == 10);
@@ -40,8 +40,7 @@ unittest{
     );
     assert(d == [69, 420, 74823, uint.max - 1, 128, 256], "Failed to truncate varInts from ubyte[]");
 
-    import freck.streams.memorystream;
-    auto stream = MemoryStream.fromBytes(varMem);
+    auto stream = new MemoryStream(varMem);
     stream.seek(0);
     d = fromVarIntStream!uint(stream, 7u);
     assert(d == [69, 420, 74823, uint.max - 1, 128, 256, 127], "Failed to read varInts from stream]");

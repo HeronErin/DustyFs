@@ -18,8 +18,8 @@
 module dustyfs.metadata;
 import freck.streams.streaminterface;
 import std.stdio;
-//import std.typecons;
-import caiman.typecons;
+import std.typecons;
+// import tern.typecons;
 
 import utils;
 
@@ -112,7 +112,7 @@ void writeMetadata(StreamInterface si, MetaData meta){
     foreach (MetaDataKeys x ; [EnumMembers!MetaDataKeys]){
         if (table[x].isNull) continue;
         keys ~= cast(ubyte)x;
-        values ~= table[x].value.toVarInt;
+        values ~= table[x].get.toVarInt;
     }
     debug assert(keys.length <= ubyte.max);
 

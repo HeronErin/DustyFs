@@ -1,22 +1,27 @@
 module tests.metadata;
 import dustyfs.metadata;
 import std.stdio;
-import caiman.typecons;
-unittest{
-    import freck.streams.memorystream;
+// import tern.typecons;
+import betterMemoryStream;
 
-    auto stream = MemoryStream.fromBytes([]);
+
+unittest{
+    auto stream = new MemoryStream(new ubyte[0]);
     writeMetaMetadata(stream, MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
+    writeMetaMetadata(stream, MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
+    writeMetaMetadata(stream, MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
+
     stream.seek(0);
 
     assert(readMetaMetadata(stream) == MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
+    assert(readMetaMetadata(stream) == MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
+    assert(readMetaMetadata(stream) == MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
 }
 unittest{
-    import freck.streams.memorystream;
     MetaData input;
     input.CreationDate = 69;
 
-    auto stream = MemoryStream.fromBytes(new ubyte[0]);;
+    auto stream = new MemoryStream(new ubyte[0]);
     stream.writeMetadata(input);
     stream.seek(0);
 
