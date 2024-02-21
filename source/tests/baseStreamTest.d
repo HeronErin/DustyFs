@@ -9,7 +9,6 @@ void basicStreamTest(StreamInterface stream){
     assert(stream.read(5) == new ubyte[5]);
 
     stream.seek(-10, Seek.cur);
-    //stream.getContents.writeln();
     assert([1, 2, 3 ,4, 5] == stream.read(5));
 
     stream.seek(-5, Seek.cur);
@@ -28,4 +27,7 @@ void basicStreamTest(StreamInterface stream){
 
     stream.seek(-1, Seek.end);
     stream.write(0x69);
+    stream.seek(-1, Seek.end);
+    assert(stream.read == 0x69);
+
 }

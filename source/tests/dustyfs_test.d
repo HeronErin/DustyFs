@@ -1,35 +1,57 @@
 module tests.dustyfs_test;
-
+import betterMemoryStream;
 import dustyfs.fs : DustyFs;
 import dustyfs.dirnode : DirNode;
+import dustyfs.filenode;
 import std.stdio;
 
 unittest{
-    DustyFs dfs = new DustyFs("dustyfs.dust", true);
-    
+    DustyFs dfs;
+    DirNode dir;
+    DirNode d3;
+    DirNode d4;
+    DFile file;
 
-    
-    dfs.root.mkDir("Test data");
-    DirNode dir = dfs.root.listDir()[0].as!DirNode;
+    import std.algorithm;
+    import std.array;
 
-    auto d3 = dir.mkDir("More test data");
-    d3.mkDir("1");
-    d3.mkDir("2");
+    uint u = 0;
 
-    auto d4 = dir.mkDir("Yet More test data");
-    d4.mkDir("a1");
-    d4.mkDir("a2").mkDir("b2").mkDir("b3");
-    d4.mkDir("a3");
-    dfs.root.mkDir("Some non-test data");
+    // 50 megs of PAIN;
+    const ubyte[] testBytes = (new ubyte[1024*1024]).map!(_=>cast(ubyte)(u++ % 0xFF)).array;
 
-    import baseStreamTest;
-    basicStreamTest(d4.touch("Test").open());
+    static foreach(openas; ["\"dustyfs.dust\"", "new MemoryStream(new ubyte[0])"]){
+        dfs = new DustyFs(mixin(openas), true);
+        
 
-    dfs.close();
+        
+        dfs.root.mkDir("Test data");
+        dir = dfs.root.listDir()[0].as!DirNode;
 
-    dfs = new DustyFs("dustyfs.dust", false);
-    dfs.root.tree();
+        d3 = dir.mkDir("More test data");
+        d3.mkDir("1");
+        d3.mkDir("2");
 
-    dfs.close();
+        d4 = dir.mkDir("Yet More test data");
+        d4.mkDir("a1");
+        d4.mkDir("a2").mkDir("b2").mkDir("b3");
+        d4.mkDir("a3");
+        dfs.root.mkDir("Some non-test data");
 
+        import baseStreamTest;
+        basicStreamTest(d4.touch("Test").open());
+        file = dfs.root.touch("test data").open();
+        file.write(testBytes);
+
+
+        dfs.close();
+
+        dfs = new DustyFs("dustyfs.dust", false);
+        assert(testBytes == dfs.root.get("test data").get.as!FileNode.open().read(testBytes.length));
+
+
+        dfs.root.tree();
+
+        dfs.close();
+    }
 }

@@ -28,6 +28,7 @@ import utils;
 
 import dustyfs.metadata;
 import std.stdio;
+import std.typecons;
 
 class DirNode : NodeWithMetadata{
     protected DustyFs parent;
@@ -164,4 +165,14 @@ class DirNode : NodeWithMetadata{
             }
         }
     }
+
+    Nullable!UnResolvedLazyloadItem get(string name){
+        Nullable!UnResolvedLazyloadItem result;
+        foreach(ref item ; listing){
+            if (item.name != name) continue;
+            result = UnResolvedLazyloadItem(item.nodeType, item.name, item.ptr, parent);
+            break;
+        }
+        return result;
+    } 
 }
