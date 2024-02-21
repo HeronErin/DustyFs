@@ -24,6 +24,7 @@ import falloc;
 import dustyfs.node : NodeStream;
 import dustyfs.metadata;
 import dustyfs.dirnode;
+import dustyfs.filenode;
 import std.stdio;
 
 
@@ -37,7 +38,7 @@ class DustyFs{
     FileStream fileStream = null;
     DirNode root;
 
-
+    // Acts as a cache and auto closes files!
     ResolvedLazyloadItem[uint] resolvableNodes;
 
 
@@ -67,6 +68,9 @@ class DustyFs{
             switch(res.type){
                 case NodeType.Directory:
                     res.as!DirNode.close();
+                    break;
+                case NodeType.File:
+                    res.as!FileNode.close();
                     break;
                 default:
                     assert(0);

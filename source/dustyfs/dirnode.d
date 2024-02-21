@@ -20,6 +20,7 @@ module dustyfs.dirnode;
 
 import dustyfs.node;
 import dustyfs.fs;
+import dustyfs.filenode;
 import std.algorithm.iteration;
 import std.array;
 
@@ -39,7 +40,7 @@ class DirNode : NodeWithMetadata{
 
     MetaMetaData[] listing = new MetaMetaData[0];
 
-    this(DustyFs parent, uint reserveSize = 1024){
+    this(DustyFs parent, uint reserveSize = 128){
         this.parent = parent;
         this.nodeWriter = new NodeStream(parent.allocator, reserveSize);
         this.file_ptr = nodeWriter.initialOffset;
@@ -54,12 +55,9 @@ class DirNode : NodeWithMetadata{
         assert(nodeWriter.readInt!ubyte == NodeType.Directory, "Attempted to load something other than a directory as a directory!");
 
         auto count = nodeWriter.readInt!uint();
-        // writeln("Reiniting dir at ", this.nodeWriter.tell(), " with ", count);
         foreach(_ ; 0..count)
             this.listing~=nodeWriter.readMetaMetadata();
         
-
-
         this.dirty = false;
     }
     void write(){
@@ -71,7 +69,6 @@ class DirNode : NodeWithMetadata{
         foreach (ref MetaMetaData element ; listing)
             nodeWriter.writeMetaMetadata(element);
         this.dirty = false;
-
     }
 
     void addNode(MetaMetaData meta){
@@ -101,8 +98,25 @@ class DirNode : NodeWithMetadata{
 
         return child;
     }
-    void touch(string n, int prealloc = 128){
+    FileNode touch(string n, int prealloc = 128){
         assert(isValidFileName(n));
+        FileNode file = new FileNode(parent);
+
+        file.write();
+        
+        MetaMetaData mmd;
+        mmd.nodeType = NodeType.File;
+        mmd.name = n;
+        mmd.size = 0;
+        mmd.ptr = file.nodeWriter.initialOffset;
+        mmd.isDirty=true; // Not written yet.
+
+        addNode(mmd);
+
+        import dustyfs.lazyload : ResolvedLazyloadItem;
+        parent.resolvableNodes[mmd.ptr] = ResolvedLazyloadItem.from(file, mmd.ptr);
+        
+        return file;
     }
 
     void close(){
@@ -135,8 +149,8 @@ class DirNode : NodeWithMetadata{
         foreach(ref item ; dir.listDir()){
             int temp = tabLevel;
 
-            while (temp--) "│ ".write();
-            writeln("├─ " ~ item.name);
+            while (temp--) " │".write();
+            writeln(" ├─" ~ item.name);
             switch (item.nodeType){
                 case NodeType.Directory:
                     DirNode subDir = item.as!DirNode;

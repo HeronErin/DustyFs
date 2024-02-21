@@ -183,7 +183,7 @@ class NodeStream : StreamInterface{
                 return userlandPos;
             default: assert(0, "Wtf??");
         }
-        assert(0, "Not reachable");
+        assert(0);
     }
 
     // TODO: This function is fucked!!!!
