@@ -148,9 +148,6 @@ void writeMetaMetadata(StreamInterface file, MetaMetaData mmd){
     auto b = [cast(ubyte) mmd.nodeType, cast(ubyte) mmd.name.length] ~
         toVarInt(mmd.size) ~
         toVarInt(mmd.ptr)  ~ (cast(ubyte[]) mmd.name);
-    b.writeln();
-    mmd.writeln();
-
     file.write(b);
 
 }
@@ -159,12 +156,10 @@ MetaMetaData readMetaMetadata(StreamInterface file){
 
     assert(nodeType_len.length == 2, "Can't read first elements of MetaMetadata");
 
-    nodeType_len.writeln();
 
     ubyte intReadCount = 0;
 
     uint[] size_ptr = fromVarIntStream!uint(file, 2);
-    size_ptr.writeln();
 
     ubyte[] name = file.read(nodeType_len[1]);
 
