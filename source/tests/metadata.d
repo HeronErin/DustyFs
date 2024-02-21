@@ -10,8 +10,6 @@ unittest{
     stream.seek(0);
 
     assert(readMetaMetadata(stream) == MetaMetaData(NodeType.Directory, "Hello world!", 50000, 420000));
-
-    "Passed MetaMetadata stream test".writeln();
 }
 unittest{
     import freck.streams.memorystream;
@@ -32,6 +30,4 @@ unittest{
     stream.writeMetadata(input);
     stream.seek(0);
     assert(stream.readMetadata() == input);
-
-    "Passed Metadata test".writeln();
 }

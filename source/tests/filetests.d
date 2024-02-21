@@ -44,8 +44,6 @@ unittest{
             allocator.close();
     }
 
-    "Passed basic usage test".writeln();
-    //allocator.printAllocTree();
 }
 
 
@@ -62,9 +60,5 @@ unittest{
     assert(130 == allocator.alloc(100));
 
     allocator.close();
-
-
-    "Passed opening a pre-written file test".writeln();
-    //allocator.alloc(100).writeln();
 }
 

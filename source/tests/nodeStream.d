@@ -57,9 +57,6 @@ unittest{
         alloc.close();
 
     }
-
-    import std.stdio;
-    "Passed NodeStream test".writeln();
 }
 
 

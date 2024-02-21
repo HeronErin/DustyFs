@@ -25,7 +25,6 @@ unittest{
 
     assert(fromVarInt!uint(toVarInt(uint.max - 1)) == uint.max - 1, "VarInt conversion error");
     assert(fromVarInt!uint(toVarInt(uint.max)) == uint.max, "VarInt conversion error");
-    "Passed varint test".writeln();
 }
 
 unittest{
@@ -50,5 +49,4 @@ unittest{
     d = fromVarIntStream!uint(stream, 6u);
     assert(d == [69, 420, 74823, uint.max - 1, 128, 256], "Failed to truncate varInts from stream");
 
-    "Passed multiple varInt test".writeln();
 }
