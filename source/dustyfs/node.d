@@ -136,7 +136,15 @@ class NodeStream : StreamInterface{
         this.knownEndNodeOffset = offset;
         this.allocator = parent;
 
-        this.nodes ~= SubNode.fromOffset(allocator, offset);
+        
+        SubNode itr;
+        do{
+            itr = SubNode.fromOffset(allocator, offset);
+            nodes ~= itr;
+            offset = itr.nextPrt;
+        }while (offset);
+        
+
         this.reservedSize = allocator.file.readInt!uint();
         this.userlandSize = allocator.file.readInt!uint();
         userlandPos=0;
@@ -190,6 +198,9 @@ class NodeStream : StreamInterface{
         long offsetWithinNode = 0;
 
         bool firstIteration = true;
+        // writeln("Making offset at ", searchPos, " rs: ", reservedSize, " uland ", userlandSize, " OF: ", length);
+        // nodes.writeln();
+
         foreach (ref SubNode node ; nodes){
             scope (exit) firstIteration = false;
 
@@ -199,6 +210,8 @@ class NodeStream : StreamInterface{
             const long scopeEnd = offsetWithinNode + node.subNodeSize - headerSize;
 
             scope (exit) offsetWithinNode=scopeEnd;
+
+            // writeln("Working a subnode of size ", node.subNodeSize, " and a true size of ", node.subNodeSize-headerSize);
 
 
             // We are looking for a node that contains part of the memory we are looking for
@@ -223,7 +236,7 @@ class NodeStream : StreamInterface{
             if (length == 0) break;
 
         }
-        writeln("Lengthwise offsets", offsetsToReturn);
+        // writeln("Lengthwise offsets", offsetsToReturn);
         return offsetsToReturn;
     }
 
