@@ -15,10 +15,9 @@ unittest{
     import std.algorithm;
     import std.array;
 
+    // Todo: Larger sizes fuck this
     uint u = 0;
-
-    // 50 megs of PAIN;
-    const ubyte[] testBytes = (new ubyte[1024*1024]).map!(_=>cast(ubyte)(u++ % 0xFF)).array;
+    const ubyte[] testBytes = (new ubyte[1024*1024*50]).map!(_=>cast(ubyte)(u++ % 0xFF)).array;
 
     static foreach(openas; ["\"dustyfs.dust\"", "new MemoryStream(new ubyte[0])"]){
         dfs = new DustyFs(mixin(openas), true);
@@ -43,7 +42,7 @@ unittest{
         file = dfs.root.touch("test data").open();
         file.write(testBytes);
 
-
+        
         dfs.close();
 
         dfs = new DustyFs("dustyfs.dust", false);

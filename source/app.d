@@ -1,10 +1,13 @@
 import std.stdio;
 import falloc;
 import dustyfs.node;
-import freck.streams.memorystream;
+import betterMemoryStream;
 import freck.streams.filestream;
 import utils;
 import dustyfs : DustyFs;
+
+import std.algorithm;
+import std.array;
 
 import dustyfs.lazyload;
 import dustyfs.dirnode : DirNode;
@@ -12,16 +15,28 @@ import dustyfs.filenode : FileNode;
 
 void main(){
     DustyFs dfs = new DustyFs("dustyfs.dust", true);
+
+    FileNode file = dfs.root.touch("test.dust");
+    auto f = file.open();
+
+    DustyFs df2 = new DustyFs(f, true);
+
+    df2.root.touch("Nested").open().write(cast(ubyte[]) "This is a nested text file");
+    df2.close();
+    dfs.close();
+
+    dfs = new DustyFs("dustyfs.dust", false);
     scope (exit) dfs.close();
 
-    FileNode file = dfs.root.touch("test");
-    auto f = file.open();
-    f.writeInt(12);
-    f.write(cast(ubyte[])"This is some test text");
-    f.seek(0);
-    f.readInt!int().writeln();
-    (cast(string)f.read(25)).writeln();
     
-    dfs.allocator.printAllocTree();
+    df2 = new DustyFs(dfs.root.get("test.dust").get.as!FileNode.open(), false);
+    scope(exit) df2.close();
+    
+    (cast(string)df2.root.get("Nested").get().as!FileNode.open().getContents()).writeln();
+
+
+
+
+    // dfs.allocator.printAllocTree();
 
 }

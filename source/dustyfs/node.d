@@ -186,9 +186,8 @@ class NodeStream : StreamInterface{
         assert(0);
     }
 
-    // TODO: This function is fucked!!!!
     Tuple!(uint, uint)[] makeLengthWiseOffsets(uint length, uint searchPos=uint.max){
-        assert(length > 0);
+        assert(length >= 0);
 
         if (searchPos == uint.max) searchPos = this.userlandPos;
 
@@ -234,7 +233,6 @@ class NodeStream : StreamInterface{
 
 
             if (length == 0) break;
-
         }
         // writeln("Lengthwise offsets", offsetsToReturn);
         return offsetsToReturn;
@@ -246,7 +244,12 @@ class NodeStream : StreamInterface{
 
         while (writeExtent > reservedSize-SIZE_OF_INITIAL_NODE_HEADER){
             isDirty=true;
-            ushort nodeSize = cast(ushort) utils.min(cast(uint)ushort.max - SIZE_OF_SUB_NODE_HEADER, writeExtent - (reservedSize - SIZE_OF_INITIAL_NODE_HEADER));
+            ushort nodeSize = cast(ushort) utils.min(cast(uint)ushort.max - SIZE_OF_SUB_NODE_HEADER, 
+                utils.max(
+                    128,
+                    writeExtent - this.reservedSize
+                )
+            );
 
             auto offsetOfSubNode = allocator.alloc(nodeSize+SIZE_OF_SUB_NODE_HEADER);
 
@@ -258,12 +261,12 @@ class NodeStream : StreamInterface{
             nodeToAdd.write(allocator);
             this.nodes ~= nodeToAdd;
 
-            assert(writeExtent>=nodeSize);
-            writeExtent-= nodeSize;
+            
             this.reservedSize+=nodeSize;
         }
-
+        
         writeExtent = userlandPos + b.length;
+        assert(writeExtent <= reservedSize-SIZE_OF_INITIAL_NODE_HEADER);
 
         // This is safe as we _should_ have extended the node to be large enough
         if (userlandSize < writeExtent){
@@ -279,6 +282,8 @@ class NodeStream : StreamInterface{
                     writeArrayOffset .. writeArrayOffset += offset_length[1]
                 ]);
         }
+        
+        assert(writeArrayOffset == b.length);
         userlandPos+=writeArrayOffset;
 
     }
