@@ -41,9 +41,9 @@ unittest
             assert(test_byte_data == stream.read(test_byte_data.length));
 
             writeln(openas ~ ": one-chunk write test Init "
-                ~ AnsiColor.BackgroundRed, init_time, AnsiColor.Reset
-                ~ " Runtime: "~AnsiColor.BackgroundRed, time_for_write, AnsiColor.Reset
-                ~ " at a speed of "~AnsiColor.BackgroundRed,
+                ~ AnsiColor.UnderlineRed, init_time, AnsiColor.Reset
+                ~ " Runtime: "~AnsiColor.UnderlineRed, time_for_write, AnsiColor.Reset
+                ~ " at a speed of "~AnsiColor.UnderlineGreen,
                 cast(real)(test_byte_data.length/1024/1024) / (cast(real)time_for_write.total!"msecs") * 1000, AnsiColor.Reset~" megabytes per secound");
             
             static if (is(typeof(stream) == NodeStream)){
@@ -60,8 +60,8 @@ unittest
                 stream.write(test_byte_data[i]);
             }
             auto time_for_write = Clock.currTime() - write_start;
-            writeln(openas ~ ": one-chunk write test Runtime: "~AnsiColor.BackgroundRed, time_for_write, AnsiColor.Reset
-            ~ " at a speed of "~AnsiColor.BackgroundRed,
+            writeln(openas ~ ": one-chunk write test Runtime: "~AnsiColor.UnderlineRed, time_for_write, AnsiColor.Reset
+            ~ " at a speed of "~AnsiColor.UnderlineGreen,
             cast(real)(test_byte_data.length/1024/1024) / (cast(real)time_for_write.total!"msecs") * 1000, AnsiColor.Reset~" megabytes per secound");
 
             stream.seek(0);
