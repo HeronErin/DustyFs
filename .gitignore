@@ -16,6 +16,7 @@ dusty_fs-test-*
 *.obj
 *.lst
 testing
+speed
 stream.txt
 *.dust
 */*.dust

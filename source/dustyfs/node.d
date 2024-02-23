@@ -238,8 +238,7 @@ class NodeStream : StreamInterface{
         return offsetsToReturn;
     }
     
-    protected uint getRecommendedGrowthSize(){
-        
+    @safe @nogc protected uint getRecommendedGrowthSize(){
         if (reservedSize <= 512)
             return 128;
         if (reservedSize <= 2048)

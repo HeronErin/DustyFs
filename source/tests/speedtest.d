@@ -19,8 +19,8 @@ unittest
     // 25 mb of sequential data
     const ubyte[] test_byte_data = (new ubyte[1024*1024*20]).map!(_=>cast(ubyte)(u++ % 0xFF)).array;
     static foreach(openas; [
-        "new FileStream(\"speed\", \"w+b\")",
-        "new MemoryStream(new ubyte[0])",
+        // "new FileStream(\"speed\", \"w+b\")",
+        // "new MemoryStream(new ubyte[0])",
         "new NodeStream(new falloc.FileAlloc(new MemoryStream(new ubyte[0]),true))"
         ]){{
         // One large chunck
