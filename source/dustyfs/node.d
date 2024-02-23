@@ -66,7 +66,7 @@ struct SubNode{
 
 class NodeStream : StreamInterface{
     //DustyFs parent;
-    protected FileAlloc allocator;
+    FileAlloc allocator;
     protected bool isClosed = false;
     protected bool isDirty = false;
 
@@ -216,15 +216,15 @@ class NodeStream : StreamInterface{
             // We are looking for a node that contains part of the memory we are looking for
             if (scopeEnd < searchPos) continue;
 
-            assert(searchPos >= offsetWithinNode);
+            debug assert(searchPos >= offsetWithinNode);
             const long offsetWithinSubNode = searchPos-offsetWithinNode;
 
-            assert(offsetWithinSubNode >= 0);
+            debug assert(offsetWithinSubNode >= 0);
 
             const long fileOffset = node.offset + headerSize + (searchPos - offsetWithinNode);
 
             const long amountToReadInNode = utils.min(node.subNodeSize - offsetWithinSubNode - headerSize, length);
-            assert(amountToReadInNode >= 0);
+            debug assert(amountToReadInNode >= 0);
 
             length-=amountToReadInNode;
             searchPos+=amountToReadInNode;
@@ -237,16 +237,105 @@ class NodeStream : StreamInterface{
         // writeln("Lengthwise offsets", offsetsToReturn);
         return offsetsToReturn;
     }
+    
+    protected uint getRecommendedGrowthSize(){
+        
+        if (reservedSize <= 512)
+            return 128;
+        if (reservedSize <= 2048)
+            return 1024;
+        if (reservedSize <= 16384)
+            return 8192;
+        if(reservedSize <= 32768)
+            return 16384;
+        
+        return ushort.max-SIZE_OF_SUB_NODE_HEADER;
+        
+    }
 
-    void write(in ubyte b) => this.write([b]);
+    // void write(in ubyte b) => this.write([b]);
+
+    ulong lastSingleWrite = ulong.max;
+    ulong lastSingleWritePrt = ulong.max;
+    ulong lastSingleWriteSectionEnd = ulong.max;
+
+    // This may be called a LOT, so it must be FAST
+    void write(in ubyte b){
+        // if (lastSingleWrite == userlandPos && userlandPos <= lastSingleWriteSectionEnd){
+        //     lastSingleWrite=userlandPos++;
+        //     lastSingleWritePrt++;
+        //     allocator.file.seek(lastSingleWritePrt);
+        //     allocator.file.write(b);
+        //     return;
+        // }
+        long writeExtent = userlandPos + 1;
+        if (writeExtent > reservedSize-SIZE_OF_INITIAL_NODE_HEADER){
+            isDirty=true;
+            auto growthSize = getRecommendedGrowthSize();
+            assert(growthSize+SIZE_OF_SUB_NODE_HEADER <= ushort.max);
+
+            auto offsetOfSubNode = allocator.alloc(cast(uint)(growthSize+SIZE_OF_SUB_NODE_HEADER));
+
+            SubNode nodeToAdd = SubNode(offsetOfSubNode, 0, cast(ushort)( growthSize+SIZE_OF_SUB_NODE_HEADER ));
+            nodes[$-1].nextPrt = nodeToAdd.offset;
+            nodes[$-1].write(allocator);
+            nodeToAdd.write(allocator);
+            this.nodes ~= nodeToAdd;
+            
+            this.reservedSize+=growthSize;
+        }
+        if (userlandSize < writeExtent){
+            userlandSize = cast(uint) writeExtent;
+            isDirty=true;
+        }
+        
+
+        long offsetWithinNode = 0;
+
+        bool firstIteration = true;
+
+        foreach (ref SubNode node ; nodes){
+            scope (exit) firstIteration = false;
+
+            // Nodes are prepended with headers, we must skip that
+            const auto headerSize = firstIteration ? SIZE_OF_INITIAL_NODE_HEADER : SIZE_OF_SUB_NODE_HEADER;
+
+            const long scopeEnd = offsetWithinNode + node.subNodeSize - headerSize;
+
+            scope (exit) offsetWithinNode=scopeEnd;
+
+            // We are looking for a node that contains part of the memory we are looking for
+            if (scopeEnd < userlandPos) continue;
+            
+            debug assert(userlandPos >= offsetWithinNode);
+            // const long offsetWithinSubNode = searchPos-offsetWithinNode;
+            const long fileOffset = node.offset + headerSize + (userlandPos - offsetWithinNode);
+            allocator.file.seek(fileOffset);
+            allocator.file.write(b);
+            
+            lastSingleWritePrt=fileOffset;
+            lastSingleWriteSectionEnd = scopeEnd;
+
+            userlandPos++;
+            lastSingleWrite = userlandPos;
+
+            return;
+
+        }
+
+        assert(0, "Shit...");
+
+    }
     void write(in ubyte[] b){
+        if (b.length == 1) return write(b[0]);
+
         long writeExtent = userlandPos + b.length;
 
         while (writeExtent > reservedSize-SIZE_OF_INITIAL_NODE_HEADER){
             isDirty=true;
             ushort nodeSize = cast(ushort) utils.min(cast(uint)ushort.max - SIZE_OF_SUB_NODE_HEADER, 
                 utils.max(
-                    128,
+                    getRecommendedGrowthSize(),
                     writeExtent - this.reservedSize
                 )
             );

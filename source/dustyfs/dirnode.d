@@ -66,7 +66,7 @@ class DirNode : NodeWithMetadata{
         nodeWriter.writeInt!ubyte(NodeType.Directory);
         nodeWriter.writeInt!uint(cast(uint) listing.length);
 
-        writeln("Writing dir at ", this.nodeWriter.tell(), " with ", listing.length);
+        // writeln("Writing dir at ", this.nodeWriter.tell(), " with ", listing.length);
         foreach (ref MetaMetaData element ; listing)
             nodeWriter.writeMetaMetadata(element);
         this.dirty = false;

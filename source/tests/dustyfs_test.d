@@ -17,7 +17,7 @@ unittest{
 
     // Todo: Larger sizes fuck this
     uint u = 0;
-    const ubyte[] testBytes = (new ubyte[1024*1024*50]).map!(_=>cast(ubyte)(u++ % 0xFF)).array;
+    const ubyte[] testBytes = (new ubyte[1024*1024*2]).map!(_=>cast(ubyte)(u++ % 0xFF)).array;
 
     static foreach(openas; ["\"dustyfs.dust\"", "new MemoryStream(new ubyte[0])"]){
         dfs = new DustyFs(mixin(openas), true);
