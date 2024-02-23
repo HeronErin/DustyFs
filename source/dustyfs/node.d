@@ -166,6 +166,7 @@ class NodeStream : StreamInterface{
     ssize_t tell() => userlandPos;
 
     ulong seek(in long pos, in Seek origin = Seek.set) {
+        this.flush();
         switch (origin){
             case Seek.set:
                 assert(pos >= 0, "Invalid seek");
@@ -252,81 +253,55 @@ class NodeStream : StreamInterface{
         
     }
 
-    // void write(in ubyte b) => this.write([b]);
 
-    ulong lastSingleWrite = ulong.max;
-    ulong lastSingleWritePrt = ulong.max;
-    ulong lastSingleWriteSectionEnd = ulong.max;
+    protected uint nextCorrectWritePos = uint.max;
+    protected uint smallWriteBufferStart = uint.max;
+    protected ubyte[] smallWriteBuffer = new ubyte[0];
+
+    // void write(in ubyte b) => this.write([b]);
+    void flush(){
+        scope(exit) nextCorrectWritePos = uint.max;
+        scope(exit) smallWriteBufferStart = uint.max;
+        scope(exit) smallWriteBuffer = [];
+
+        if (smallWriteBuffer.length == 0) return;
+        if (smallWriteBufferStart == uint.max) return;
+        //"Flushing small edit buffer".writeln();
+
+        auto oldPos = this.userlandPos;
+
+        this.userlandPos = smallWriteBufferStart;
+        this.write(smallWriteBuffer, true);
+        this.userlandPos = oldPos;
+
+    }
 
     // This may be called a LOT, so it must be FAST
     void write(in ubyte b){
-        // if (lastSingleWrite == userlandPos && userlandPos <= lastSingleWriteSectionEnd){
-        //     lastSingleWrite=userlandPos++;
-        //     lastSingleWritePrt++;
-        //     allocator.file.seek(lastSingleWritePrt);
-        //     allocator.file.write(b);
-        //     return;
-        // }
-        long writeExtent = userlandPos + 1;
-        if (writeExtent > reservedSize-SIZE_OF_INITIAL_NODE_HEADER){
-            isDirty=true;
-            auto growthSize = getRecommendedGrowthSize();
-            assert(growthSize+SIZE_OF_SUB_NODE_HEADER <= ushort.max);
+        //this.write([b]);
+        if (nextCorrectWritePos != userlandPos || false) //smallWriteBuffer.length > 1024*1024*10)
+            this.flush();
+        //
+        //// We get to reinit!
+        if (nextCorrectWritePos == uint.max || smallWriteBufferStart == uint.max)
+            smallWriteBufferStart = userlandPos;
 
-            auto offsetOfSubNode = allocator.alloc(cast(uint)(growthSize+SIZE_OF_SUB_NODE_HEADER));
-
-            SubNode nodeToAdd = SubNode(offsetOfSubNode, 0, cast(ushort)( growthSize+SIZE_OF_SUB_NODE_HEADER ));
-            nodes[$-1].nextPrt = nodeToAdd.offset;
-            nodes[$-1].write(allocator);
-            nodeToAdd.write(allocator);
-            this.nodes ~= nodeToAdd;
-            
-            this.reservedSize+=growthSize;
-        }
-        if (userlandSize < writeExtent){
-            userlandSize = cast(uint) writeExtent;
-            isDirty=true;
-        }
-        
-
-        long offsetWithinNode = 0;
-
-        bool firstIteration = true;
-
-        foreach (ref SubNode node ; nodes){
-            scope (exit) firstIteration = false;
-
-            // Nodes are prepended with headers, we must skip that
-            const auto headerSize = firstIteration ? SIZE_OF_INITIAL_NODE_HEADER : SIZE_OF_SUB_NODE_HEADER;
-
-            const long scopeEnd = offsetWithinNode + node.subNodeSize - headerSize;
-
-            scope (exit) offsetWithinNode=scopeEnd;
-
-            // We are looking for a node that contains part of the memory we are looking for
-            if (scopeEnd < userlandPos) continue;
-            
-            debug assert(userlandPos >= offsetWithinNode);
-            // const long offsetWithinSubNode = searchPos-offsetWithinNode;
-            const long fileOffset = node.offset + headerSize + (userlandPos - offsetWithinNode);
-            allocator.file.seek(fileOffset);
-            allocator.file.write(b);
-            
-            lastSingleWritePrt=fileOffset;
-            lastSingleWriteSectionEnd = scopeEnd;
-
-            userlandPos++;
-            lastSingleWrite = userlandPos;
-
-            return;
-
-        }
-
-        assert(0, "Shit...");
-
+        smallWriteBuffer ~= b;
+        nextCorrectWritePos = ++userlandPos;
     }
-    void write(in ubyte[] b){
-        if (b.length == 1) return write(b[0]);
+    void write(in ubyte[] b) => write(b, false);
+    void write(in ubyte[] b, bool isDirect){
+        //if (b.length == 1) return write(b[0]);
+        //if (false == isDirect || b.length < 100){
+        //    if (nextCorrectWritePos != userlandPos)
+        //        this.flush();
+        //    if (nextCorrectWritePos == uint.max || smallWriteBufferStart == uint.max)
+        //        smallWriteBufferStart = userlandPos;
+        //    smallWriteBuffer ~= b;
+        //    nextCorrectWritePos = userlandPos+cast(uint) b.length;
+        //    return;
+        //}
+
 
         long writeExtent = userlandPos + b.length;
 
@@ -409,6 +384,7 @@ class NodeStream : StreamInterface{
     void close(){
         if (isClosed) return;
         this.isClosed = true;
+        this.flush();
         if (!isDirty) return;
 
         nodes[0].write(allocator);
