@@ -24,7 +24,8 @@ unittest
     static foreach(openas; [
          "new FileStream(\"speed\", \"w+b\")",
          "new MemoryStream(new ubyte[0])",
-        "new NodeStream(new falloc.FileAlloc(new MemoryStream(new ubyte[0]),true))"
+         "new NodeStream(new falloc.FileAlloc(new MemoryStream(new ubyte[0]),true))",
+         "new NodeStream(new falloc.FileAlloc(new FileStream(\"speed\", \"w+b\"),true))"
         ]){{
         // One large chunck
         {   
