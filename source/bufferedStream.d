@@ -3,26 +3,29 @@ import freck.streams.streaminterface;
 import std.typecons : tuple, Tuple;
 
 struct BChunk{
-    ssize_t start;
-    ssize_t end;
+    ulong start;
+    ulong end;
     ubyte[] buff = new ubyte[0];
 }
 
 // We want to group writes together to speed up file IO. (Although the os likely does this for us)
 class BufferedStream{
+    ssize_t userlandpos;
     BChunk[] bufferChuncks = new BChunk[0];
 
     StreamInterface stream;
     this(StreamInterface stream){
         this.stream = stream;
+        userlandpos = stream.tell();
+
+        bufferChuncks~=BChunk(0, ulong.max);
+        curr_write = &bufferChuncks[$-1];
     }
 
     BChunk* curr_write = null;
 
 
-
     // Most things are just proxied
-
     void setEndian(Endian e) => stream.setEndian(e);
     Endian getEndian() => stream.getEndian();
     ssize_t length() => stream.length();
@@ -41,7 +44,9 @@ class BufferedStream{
     ubyte[] getContents() =>stream.getContents();
     ulong seek(in long pos, in Seek origin = Seek.set) => stream.seek(pos, origin);
 
-    void write(in ubyte b)=> stream.write(b);
+    void write(in ubyte b){
+
+    }
     void write(in ubyte[] b)=> stream.write(b);
     ubyte read() => stream.read();
     ubyte[] read(in ulong n) => stream.read(n);

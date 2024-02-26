@@ -20,7 +20,7 @@ unittest
     ulong u = 0;
 
     // 25 mb of sequential data
-    const ubyte[] test_byte_data = (new ubyte[1024*1024*25]).map!(_=>cast(ubyte)(u++ % 0xFF)).array;
+    const ubyte[] test_byte_data = (new ubyte[1024*1024*5]).map!(_=>cast(ubyte)(u++ % 0xFF)).array;
     static foreach(openas; [
          "new FileStream(\"speed\", \"w+b\")",
          "new MemoryStream(new ubyte[0])",

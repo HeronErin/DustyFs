@@ -48,13 +48,14 @@ class MemoryStream : StreamInterface {
         this.ptr = 0;
     }
 
-    protected void extentToFix(ssize_t extent){
+    @safe protected void extentToFix(ssize_t extent){
         if (extent < this.buf.length) return;
-        this.buf ~= new ubyte[extent - buf.length];
+        this.buf.reserve(extent+1);
+        this.buf.length = extent;
         debug assert(extent <= this.buf.length);
     }
 
-    ssize_t seek(in sdiff_t pos, in Seek origin = Seek.set){
+    @safe @nogc ssize_t seek(in sdiff_t pos, in Seek origin = Seek.set){
         if (origin == Seek.set)
             this.ptr = pos;
 
@@ -69,20 +70,19 @@ class MemoryStream : StreamInterface {
         return this.ptr;
     }
 
-    void write(in ubyte b){
+    @safe void write(in ubyte b){
         extentToFix(this.ptr+1);
-        buf[this.ptr] = b;
-        this.ptr++;
+        buf[this.ptr++] = b;
     }
-    void write(in ubyte[] b){
+    @safe void write(in ubyte[] b){
         extentToFix(ptr + b.length);
         buf[ptr..ptr + b.length] = b;
         this.ptr += b.length;
     }
-    ubyte read(){
+    @safe ubyte read(){
         return ptr > buf.length ? 0 : buf[ptr++];
     }
-    ubyte[] read(in ulong n){
+    @safe ubyte[] read(in ulong n){
         ubyte[] ret = new ubyte[n];
         if (ptr > buf.length) return ret;
 
