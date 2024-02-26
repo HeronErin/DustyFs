@@ -203,7 +203,6 @@ class NodeStream : StreamInterface{
 
         foreach (ref SubNode node ; nodes){
             scope (exit) firstIteration = false;
-            scope (exit) firstIteration = false;
 
             // Nodes are prepended with headers, we must skip that
             const auto headerSize = firstIteration ? SIZE_OF_INITIAL_NODE_HEADER : SIZE_OF_SUB_NODE_HEADER;
@@ -211,9 +210,6 @@ class NodeStream : StreamInterface{
             const long scopeEnd = offsetWithinNode + node.subNodeSize - headerSize;
 
             scope (exit) offsetWithinNode=scopeEnd;
-
-            // writeln("Working a subnode of size ", node.subNodeSize, " and a true size of ", node.subNodeSize-headerSize);
-
 
             // We are looking for a node that contains part of the memory we are looking for
             if (scopeEnd < searchPos) continue;
