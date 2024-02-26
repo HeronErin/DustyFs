@@ -189,22 +189,20 @@ class NodeStream : StreamInterface{
         assert(0);
     }
 
-
+    // Don't exactly know how this works, but the issue is NEVER this function, but how it is used.
+    // After many bugs and failed tests, it has never been this function in the wrong.
     void makeLengthWiseOffsets(uint length, void delegate(uint, uint) callback, uint searchPos=uint.max){
         assert(length >= 0);
 
         if (searchPos == uint.max) searchPos = this.userlandPos;
 
-                                        // Offset, length
-        //auto offsetsToReturn = new Tuple!(uint, uint)[0];
 
         long offsetWithinNode = 0;
 
         bool firstIteration = true;
-        // writeln("Making offset at ", searchPos, " rs: ", reservedSize, " uland ", userlandSize, " OF: ", length);
-        // nodes.writeln();
 
         foreach (ref SubNode node ; nodes){
+            scope (exit) firstIteration = false;
             scope (exit) firstIteration = false;
 
             // Nodes are prepended with headers, we must skip that
@@ -234,10 +232,10 @@ class NodeStream : StreamInterface{
             searchPos+=amountToReadInNode;
 
             callback(cast(uint) fileOffset, cast(uint) amountToReadInNode);
-            //offsetsToReturn ~= tuple(cast(uint) fileOffset, cast(uint) amountToReadInNode);
 
 
             if (length == 0) break;
+
         }
         // writeln("Lengthwise offsets", offsetsToReturn);
         //return offsetsToReturn;
@@ -295,8 +293,8 @@ class NodeStream : StreamInterface{
     }
     void write(in ubyte[] b) => write(b, false);
     void write(in ubyte[] b, bool isDirect){
-        //if (b.length == 1) return write(b[0]);
-        //if (false == isDirect || b.length < 100){
+        if (b.length == 1 && !isDirect) return write(b[0]);
+        //if (!isDirect || b.length < 100){
         //    if (nextCorrectWritePos != userlandPos)
         //        this.flush();
         //    if (nextCorrectWritePos == uint.max || smallWriteBufferStart == uint.max)
@@ -360,7 +358,7 @@ class NodeStream : StreamInterface{
         ubyte ret;
         this.makeLengthWiseOffsets(1, (uint seekPos, uint length){
             allocator.file.seek(seekPos);
-            allocator.file.read();
+            ret = allocator.file.read();
             userlandPos++;
         });
 
@@ -376,7 +374,7 @@ class NodeStream : StreamInterface{
             allocator.file.seek(seekPos);
             const ubyte[] fromFile = allocator.file.read(length);
             ret[readArrayOffset .. readArrayOffset+fromFile.length] = fromFile;
-            readArrayOffset+=seekPos;
+            readArrayOffset+=length;
         });
 
 

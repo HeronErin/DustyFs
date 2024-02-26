@@ -19,7 +19,8 @@ void main(){
     const ubyte[] test_byte_data = (new ubyte[1024*1024*5]).map!(_=>cast(ubyte)(u++ % 0xFF)).array;
     stream.write(test_byte_data);
     stream.seek(0);
-    assert(stream.read(test_byte_data.length) == test_byte_data);
+    auto d = stream.read(test_byte_data.length);
+    assert(d == test_byte_data);
     //foreach (ubyte b ; test_byte_data)
     //    stream.write(b);
 
