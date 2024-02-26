@@ -64,6 +64,8 @@ struct SubNode{
     }
 }
 
+
+
 class NodeStream : StreamInterface{
     //DustyFs parent;
     FileAlloc allocator;
@@ -187,13 +189,14 @@ class NodeStream : StreamInterface{
         assert(0);
     }
 
-    Tuple!(uint, uint)[] makeLengthWiseOffsets(uint length, uint searchPos=uint.max){
+
+    void makeLengthWiseOffsets(uint length, void delegate(uint, uint) callback, uint searchPos=uint.max){
         assert(length >= 0);
 
         if (searchPos == uint.max) searchPos = this.userlandPos;
 
                                         // Offset, length
-        auto offsetsToReturn = new Tuple!(uint, uint)[0];
+        //auto offsetsToReturn = new Tuple!(uint, uint)[0];
 
         long offsetWithinNode = 0;
 
@@ -230,13 +233,14 @@ class NodeStream : StreamInterface{
             length-=amountToReadInNode;
             searchPos+=amountToReadInNode;
 
-            offsetsToReturn ~= tuple(cast(uint) fileOffset, cast(uint) amountToReadInNode);
+            callback(cast(uint) fileOffset, cast(uint) amountToReadInNode);
+            //offsetsToReturn ~= tuple(cast(uint) fileOffset, cast(uint) amountToReadInNode);
 
 
             if (length == 0) break;
         }
         // writeln("Lengthwise offsets", offsetsToReturn);
-        return offsetsToReturn;
+        //return offsetsToReturn;
     }
     
     @safe @nogc protected uint getRecommendedGrowthSize(){
@@ -338,13 +342,14 @@ class NodeStream : StreamInterface{
         }
 
         uint writeArrayOffset = 0;
-        foreach (ref Tuple!(uint, uint) offset_length ; this.makeLengthWiseOffsets(cast(uint) b.length)){
-            allocator.file.seek(offset_length[0]);
+
+        this.makeLengthWiseOffsets(cast(uint) b.length, (uint seekPos, uint length){
+            allocator.file.seek(seekPos);
             allocator.file.write(
                 b[
-                    writeArrayOffset .. writeArrayOffset += offset_length[1]
+                    writeArrayOffset .. writeArrayOffset += length
                 ]);
-        }
+        });
         
         assert(writeArrayOffset == b.length);
         userlandPos+=writeArrayOffset;
@@ -352,11 +357,14 @@ class NodeStream : StreamInterface{
     }
 
     ubyte read(){
-        Tuple!(uint, uint)[] offsetA = this.makeLengthWiseOffsets(1);
-        debug assert(offsetA.length == 1);
-        allocator.file.seek(offsetA[0][0]);
-        userlandPos++;
-        return allocator.file.read();
+        ubyte ret;
+        this.makeLengthWiseOffsets(1, (uint seekPos, uint length){
+            allocator.file.seek(seekPos);
+            allocator.file.read();
+            userlandPos++;
+        });
+
+        return ret;
     }
 
     ubyte[] read(in ulong n){
@@ -364,12 +372,14 @@ class NodeStream : StreamInterface{
         //if (n == 0) return ret;
 
         uint readArrayOffset = 0;
-        foreach (ref Tuple!(uint, uint) offset_length ; this.makeLengthWiseOffsets(cast(uint) n)){
-            allocator.file.seek(offset_length[0]);
-            const ubyte[] fromFile = allocator.file.read(offset_length[1]);
+        this.makeLengthWiseOffsets(cast(uint) n, (uint seekPos, uint length){
+            allocator.file.seek(seekPos);
+            const ubyte[] fromFile = allocator.file.read(length);
             ret[readArrayOffset .. readArrayOffset+fromFile.length] = fromFile;
-            readArrayOffset+=offset_length[1];
-        }
+            readArrayOffset+=seekPos;
+        });
+
+
         userlandPos += readArrayOffset;
         return ret;
     }

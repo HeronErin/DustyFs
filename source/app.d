@@ -16,8 +16,10 @@ import dustyfs.filenode : FileNode;
 void main(){
     auto stream = new NodeStream(new falloc.FileAlloc(new MemoryStream(new ubyte[0]), true));
     long u = 0;
-    //const ubyte[] test_byte_data = (new ubyte[1024*1024*5]).map!(_=>cast(ubyte)(u++ % 0xFF)).array;
-    ////stream.write(test_byte_data);
+    const ubyte[] test_byte_data = (new ubyte[1024*1024*5]).map!(_=>cast(ubyte)(u++ % 0xFF)).array;
+    stream.write(test_byte_data);
+    stream.seek(0);
+    assert(stream.read(test_byte_data.length) == test_byte_data);
     //foreach (ubyte b ; test_byte_data)
     //    stream.write(b);
 
