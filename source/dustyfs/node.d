@@ -206,7 +206,7 @@ class NodeStream : StreamInterface{
 
             // Nodes are prepended with headers, we must skip that
             const auto headerSize = firstIteration ? SIZE_OF_INITIAL_NODE_HEADER : SIZE_OF_SUB_NODE_HEADER;
-
+            // End of sub-node from the perspective of the node stream
             const long scopeEnd = offsetWithinNode + node.subNodeSize - headerSize;
 
             scope (exit) offsetWithinNode=scopeEnd;
@@ -222,13 +222,13 @@ class NodeStream : StreamInterface{
             const long fileOffset = node.offset + headerSize + (searchPos - offsetWithinNode);
 
             const long amountToReadInNode = utils.min(node.subNodeSize - offsetWithinSubNode - headerSize, length);
+
             debug assert(amountToReadInNode >= 0);
 
             length-=amountToReadInNode;
             searchPos+=amountToReadInNode;
 
             callback(cast(uint) fileOffset, cast(uint) amountToReadInNode);
-
 
             if (length == 0) break;
 
@@ -274,6 +274,31 @@ class NodeStream : StreamInterface{
 
     }
 
+    void extendToFit(in long writeExtent){
+        while (writeExtent > reservedSize-SIZE_OF_INITIAL_NODE_HEADER){
+            isDirty=true;
+            ushort nodeSize = cast(ushort) utils.min(cast(uint)ushort.max - SIZE_OF_SUB_NODE_HEADER,
+            utils.max(
+                getRecommendedGrowthSize(),
+                writeExtent - this.reservedSize
+            )
+            );
+
+            auto offsetOfSubNode = allocator.alloc(nodeSize+SIZE_OF_SUB_NODE_HEADER);
+
+            assert(offsetOfSubNode != 0);
+
+            SubNode nodeToAdd = SubNode(offsetOfSubNode, 0, cast(ushort)( nodeSize+SIZE_OF_SUB_NODE_HEADER ));
+            nodes[$-1].nextPrt = nodeToAdd.offset;
+            nodes[$-1].write(allocator);
+            nodeToAdd.write(allocator);
+            this.nodes ~= nodeToAdd;
+
+
+            this.reservedSize+=nodeSize;
+        }
+    }
+
     // This may be called a LOT, so it must be FAST
     void write(in ubyte b){
         //this.write([b]);
@@ -303,31 +328,9 @@ class NodeStream : StreamInterface{
 
         long writeExtent = userlandPos + b.length;
 
-        while (writeExtent > reservedSize-SIZE_OF_INITIAL_NODE_HEADER){
-            isDirty=true;
-            ushort nodeSize = cast(ushort) utils.min(cast(uint)ushort.max - SIZE_OF_SUB_NODE_HEADER, 
-                utils.max(
-                    getRecommendedGrowthSize(),
-                    writeExtent - this.reservedSize
-                )
-            );
+        extendToFit(writeExtent);
 
-            auto offsetOfSubNode = allocator.alloc(nodeSize+SIZE_OF_SUB_NODE_HEADER);
-
-            assert(offsetOfSubNode != 0);
-
-            SubNode nodeToAdd = SubNode(offsetOfSubNode, 0, cast(ushort)( nodeSize+SIZE_OF_SUB_NODE_HEADER ));
-            nodes[$-1].nextPrt = nodeToAdd.offset;
-            nodes[$-1].write(allocator);
-            nodeToAdd.write(allocator);
-            this.nodes ~= nodeToAdd;
-
-            
-            this.reservedSize+=nodeSize;
-        }
-        
-        writeExtent = userlandPos + b.length;
-        assert(writeExtent <= reservedSize-SIZE_OF_INITIAL_NODE_HEADER);
+        debug assert(writeExtent <= reservedSize-SIZE_OF_INITIAL_NODE_HEADER);
 
         // This is safe as we _should_ have extended the node to be large enough
         if (userlandSize < writeExtent){
