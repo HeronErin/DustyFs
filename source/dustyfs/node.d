@@ -196,7 +196,6 @@ class NodeStream : StreamInterface{
 
         if (searchPos == uint.max) searchPos = this.userlandPos;
 
-
         long offsetWithinNode = 0;
 
         bool firstIteration = true;
@@ -233,8 +232,6 @@ class NodeStream : StreamInterface{
             if (length == 0) break;
 
         }
-        // writeln("Lengthwise offsets", offsetsToReturn);
-        //return offsetsToReturn;
     }
     
     @safe @nogc protected uint getRecommendedGrowthSize(){
@@ -274,7 +271,7 @@ class NodeStream : StreamInterface{
 
     }
 
-    void extendToFit(in long writeExtent){
+    private void extendToFit(in long writeExtent){
         while (writeExtent > reservedSize-SIZE_OF_INITIAL_NODE_HEADER){
             isDirty=true;
             ushort nodeSize = cast(ushort) utils.min(cast(uint)ushort.max - SIZE_OF_SUB_NODE_HEADER,
@@ -302,7 +299,7 @@ class NodeStream : StreamInterface{
     // This may be called a LOT, so it must be FAST
     void write(in ubyte b){
         //this.write([b]);
-        if (nextCorrectWritePos != userlandPos || false) //smallWriteBuffer.length > 1024*1024*10)
+        if (nextCorrectWritePos != userlandPos || smallWriteBuffer.length > 1024*1024*5)
             this.flush();
         //
         //// We get to reinit!
