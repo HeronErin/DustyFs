@@ -26,6 +26,8 @@ void main(){
     s2.seek(0);
     s2.bufferChuncks.writeln;
     s2.write(cast(ubyte[]) "Some test text that is bound to be quite long for this test");
-    s2.bufferChuncks.writeln;
+    s2.flush();
+    stream.seek(0);
+    stream.getContents.writeln;
 
 }
