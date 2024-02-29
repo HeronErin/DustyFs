@@ -15,7 +15,7 @@ unittest{
     import std.algorithm;
     import std.array;
 
-    // Todo: Larger sizes fuck this
+
     uint u = 0;
     const ubyte[] testBytes = (new ubyte[1024*1024*2]).map!(_=>cast(ubyte)(u++ % 0xFF)).array;
 

@@ -31,12 +31,14 @@ import std.stdio;
 enum ROOT_NODE_OFFSET = 25;
 
 import dustyfs.lazyload;
+import abstractfs;
 
-class DustyFs{
+class DustyFs : FileSystemInterface{
     falloc.FileAlloc allocator;
     bool closed = false;
     FileStream fileStream = null;
     DirNode root;
+    DirNode getRoot() => root;
 
     // Acts as a cache and auto closes files!
     ResolvedLazyloadItem[uint] resolvableNodes;

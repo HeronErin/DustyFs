@@ -14,8 +14,11 @@ import dustyfs.dirnode : DirNode;
 import dustyfs.filenode : FileNode;
 
 //import bufferedStream;
-
+import abstractfs;
+import std.traits;
+import tern.meta;
 void main(){
+    //writeln();
     //auto stream = new MemoryStream(new ubyte[0]);
     //auto s2 = new BufferedStream(stream);
     //s2.write([1]);

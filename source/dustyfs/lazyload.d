@@ -26,21 +26,24 @@ import dustyfs.node : SIZE_OF_INITIAL_NODE_HEADER;
 protected pure bool isCorrect(T)(){
     return is(T == DirNode) || is(T == FileNode);
 }
+import std.traits;
+import tern.meta;
 
+import abstractfs;
 struct ResolvedLazyloadItem{
     NodeType type;
     uint ptr;
     void* item; // Can be anything. WARNING: CAN BE UNSAFE!!!
 
     T as(T)(){
-        if (type == NodeType.Directory) 
+        if (type == NodeType.Directory)
             assert(
-                is(T == DirNode), 
+                seqContains!(DirInterface, InterfacesTuple!T) || is(T == DirInterface),
                 "Error! You must use the correct type for resolving a lazyloaded item! Got: " ~ T.stringof ~ " Needed: " ~ DirNode.stringof
                 );
         if (type == NodeType.File) 
             assert(
-                is(T == FileNode), 
+                seqContains!(FileInterface, InterfacesTuple!T) || is(T == FileInterface),
                 "Error! You must use the correct type for resolving a lazyloaded item! Got: " ~ T.stringof ~ " Needed: " ~ FileNode.stringof
                 );
         return cast(T) item;
@@ -70,29 +73,18 @@ struct UnResolvedLazyloadItem{
     uint ptr;
     DustyFs parent;
 
-    ResolvedLazyloadItem resolve(){
+    ResolvedLazyloadItem resolve(T)(){
         ResolvedLazyloadItem* found = ptr in parent.resolvableNodes;
         if (found) return *found;
 
-        switch(nodeType){
-            case NodeType.Directory:
-                DirNode dir = new DirNode(ptr, parent);
-                auto rlli = ResolvedLazyloadItem.from(dir, ptr);
-                parent.resolvableNodes[ptr] = rlli;
-                return rlli;
-            case NodeType.File:
-                FileNode dir = new FileNode(ptr, parent);
-                auto rlli = ResolvedLazyloadItem.from(dir, ptr);
-                parent.resolvableNodes[ptr] = rlli;
-                return rlli;
-            default:
-                assert(0, "Invalid lazyloaded object!");
-                break;
-        }
+        T dir = new T(ptr, parent);
+        auto rlli = ResolvedLazyloadItem.from(dir, ptr);
+        parent.resolvableNodes[ptr] = rlli;
+        return rlli;
 
     }
 
-    T as(T)() => this.resolve().as!T;
+    T as(T)() => this.resolve!T.as!T;
 }
 
 

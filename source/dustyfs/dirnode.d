@@ -29,8 +29,9 @@ import utils;
 import dustyfs.metadata;
 import std.stdio;
 import std.typecons;
+import abstractfs;
 
-class DirNode : NodeWithMetadata{
+class DirNode : NodeWithMetadata, DirInterface{
     protected DustyFs parent;
     bool closed = false;
     uint file_ptr;

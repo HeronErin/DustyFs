@@ -32,13 +32,14 @@ import freck.streams.streaminterface;
 enum SIZE_OF_DFILE_HEADER = 1;
 
 import std.string : StringException;
-
+import abstractfs;
 class DFile : StreamInterface{
     FileNode parent;
     NodeStream nodeWriter;
     this(FileNode parent, NodeStream nodeWriter){
         this.parent=parent;
         this.nodeWriter=nodeWriter;
+        this.seek(0);
     }
 
     void setEndian(Endian e) => nodeWriter.setEndian(e);
@@ -77,7 +78,7 @@ class DFile : StreamInterface{
 
 }
 
-class FileNode : NodeWithMetadata{
+class FileNode : NodeWithMetadata, FileInterface{
     protected DustyFs parent;
     protected bool dirty = false;
     bool closed = false;
